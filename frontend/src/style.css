@@ -468,6 +468,96 @@ kbd {
     letter-spacing: 0.08em;
 }
 
+/* TODO WIDGET */
+
+.todo-widget {
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.todo-list {
+    flex: 1;
+    min-height: 0;
+
+    margin: 0;
+    padding: 10px 16px;
+
+    list-style: none;
+    overflow-y: auto;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 6px 8px;
+
+    border: 1px solid transparent;
+
+    color: var(--text);
+    font-size: 13px;
+    text-align: left;
+}
+
+.todo-item.cursor {
+    border-color: var(--accent-soft);
+    background: var(--surface-selected);
+}
+
+.todo-item.done {
+    color: var(--text-faint);
+    text-decoration: line-through;
+}
+
+.todo-mark {
+    flex-shrink: 0;
+    color: var(--accent);
+}
+
+.todo-item.done .todo-mark {
+    color: var(--text-faint);
+}
+
+.todo-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.todo-input {
+    flex-shrink: 0;
+
+    padding: 10px 16px;
+
+    border: 0;
+    border-top: 1px solid var(--border-soft);
+
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+
+    outline: none;
+}
+
+.todo-input::placeholder {
+    color: var(--text-faint);
+}
+
+.todo-error {
+    margin: 0;
+    padding: 6px 16px;
+
+    color: var(--accent);
+    font-size: 11px;
+}
+
 /* PLACEHOLDER PAGES */
 
 .page-placeholder {

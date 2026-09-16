@@ -8,7 +8,7 @@
     {#each tabs as tab}
         <button
             class:active={activeTab === tab.id}
-            onclick={() => onSelect(tab.id)}
+            on:click={() => onSelect(tab.id)}
         >
             <span class="tab-key">{tab.key}</span>
             <span>{tab.label}</span>
