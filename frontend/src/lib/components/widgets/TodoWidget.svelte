@@ -7,6 +7,9 @@
 
     export let focused = false;
 
+    const MAX_ACTIVE_VISIBLE = 5;
+    const MAX_COMPLETED_VISIBLE = 2;
+
     let tasks = [];
     let cursor = 0;
     let loading = true;
@@ -23,7 +26,11 @@
     });
 
     $: ({ active, completed } = splitTasks(tasks));
-    $: rows = [...active, ...completed];
+    $: visibleActive = active.slice(0, MAX_ACTIVE_VISIBLE);
+    $: hiddenActiveCount = active.length - visibleActive.length;
+    $: visibleCompleted = completed.slice(0, MAX_COMPLETED_VISIBLE);
+    $: hiddenCompletedCount = completed.length - visibleCompleted.length;
+    $: rows = [...visibleActive, ...visibleCompleted];
 
     async function toggleCurrent() {
         const task = rows[cursor];
@@ -90,7 +97,7 @@
             </div>
         {:else}
             <ul class="todo-list">
-                {#each active as task (task.id)}
+                {#each visibleActive as task (task.id)}
                     {@const index = rows.indexOf(task)}
                     <li class="todo-item" class:cursor={focused && index === cursor}>
                         <span class="todo-mark">☐</span>
@@ -104,13 +111,17 @@
                         </span>
                     </li>
                 {/each}
+
+                {#if hiddenActiveCount > 0}
+                    <li class="todo-more-hint">+{hiddenActiveCount} more on the Tasks page</li>
+                {/if}
             </ul>
 
             {#if completed.length > 0}
                 <div class="todo-section-label">Completed</div>
 
                 <ul class="todo-list">
-                    {#each completed as task (task.id)}
+                    {#each visibleCompleted as task (task.id)}
                         {@const index = rows.indexOf(task)}
                         <li class="todo-item done" class:cursor={focused && index === cursor}>
                             <span class="todo-mark todo-mark-done">☑</span>
@@ -118,6 +129,10 @@
                             <span class="todo-completed-date">{formatCompletedDate(task.completedAt)}</span>
                         </li>
                     {/each}
+
+                    {#if hiddenCompletedCount > 0}
+                        <li class="todo-more-hint">+{hiddenCompletedCount} more completed</li>
+                    {/if}
                 </ul>
             {/if}
         {/if}
