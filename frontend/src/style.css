@@ -360,7 +360,7 @@ main {
 }
 
 .dashboard-heading {
-    margin-bottom: 32px;
+    margin-bottom: 16px;
 
     display: flex;
     align-items: end;
@@ -376,7 +376,7 @@ main {
 
 .dashboard-heading h1,
 .page-placeholder h1 {
-    margin: 8px 0 0;
+    margin: 4px 0 0;
 
     font-family: var(--mono);
     font-size: 34px;

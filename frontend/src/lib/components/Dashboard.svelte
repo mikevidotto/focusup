@@ -1,14 +1,32 @@
 <script>
+    import { onMount, onDestroy } from "svelte";
+
     import WidgetSlot from "./WidgetSlot.svelte";
     import { widgets } from "../widgets.js";
     import { mode, selectedWidgetId } from "../stores/keyboard.js";
+    import { getGreeting } from "../greeting.js";
+
+    let now = new Date();
+    let interval;
+
+    onMount(() => {
+        interval = setInterval(() => {
+            now = new Date();
+        }, 60000);
+    });
+
+    onDestroy(() => {
+        clearInterval(interval);
+    });
+
+    $: greeting = getGreeting(now);
 </script>
 
 <div class="dashboard">
     <div class="dashboard-heading">
         <div>
             <span class="eyebrow">FOCUSUP / DASHBOARD</span>
-            <h1>Good morning.</h1>
+            <h1>{greeting}</h1>
         </div>
 
         <div class="dashboard-hint">
