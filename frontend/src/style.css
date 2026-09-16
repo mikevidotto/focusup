@@ -7,17 +7,8 @@ html {
 body {
     margin: 0;
     color: white;
-    font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-}
-
-@font-face {
-    font-family: "Nunito";
-    font-style: normal;
-    font-weight: 400;
-    src: local(""),
-    url("assets/fonts/nunito-v16-latin-regular.woff2") format("woff2");
+    font-family: Consolas, "Cascadia Code", "SF Mono", Menlo, Monaco,
+    "Courier New", monospace;
 }
 
 #app {
@@ -25,22 +16,19 @@ body {
     text-align: center;
 }
 :root {
-    font-family:
-        Inter,
-        "Helvetica Neue",
-        Arial,
-        sans-serif;
+    font-family: Consolas, "Cascadia Code", "SF Mono", Menlo, Monaco,
+    "Courier New", monospace;
 
     color: #dedbd3;
-    background: #111210;
+    background: #090a08;
 
-    --bg: #111210;
-    --surface: #161715;
-    --surface-hover: #1c1d1a;
-    --surface-selected: #20211e;
+    --bg: #090a08;
+    --surface: #0d0e0c;
+    --surface-hover: #121310;
+    --surface-selected: #151613;
 
-    --border: #2b2c28;
-    --border-soft: #22231f;
+    --border: #21221d;
+    --border-soft: #181914;
 
     --text: #dedbd3;
     --text-soft: #8d8c85;
@@ -52,12 +40,14 @@ body {
     --success: #738d75;
     --warning: #b39562;
 
-    --serif:
-        "Iowan Old Style",
-        "Palatino Linotype",
-        Palatino,
-        Georgia,
-        serif;
+    --mono:
+        Consolas,
+        "Cascadia Code",
+        "SF Mono",
+        Menlo,
+        Monaco,
+        "Courier New",
+        monospace;
 }
 
 * {
@@ -90,7 +80,7 @@ button {
 .app-shell {
     height: 100vh;
     display: grid;
-    grid-template-rows: 54px 40px 1fr 38px;
+    grid-template-rows: 54px 52px 1fr 38px;
     background:
         radial-gradient(
             circle at 10% 0%,
@@ -222,7 +212,7 @@ button {
 }
 
 .brand strong {
-    font-family: var(--serif);
+    font-family: var(--mono);
     font-size: 20px;
     font-weight: 400;
 }
@@ -324,29 +314,29 @@ button {
 
 .tab-bar-date {
     color: var(--text-faint);
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
 
 .tab-bar-time {
     color: var(--text);
-    font-size: 14px;
-    font-family: var(--serif);
+    font-size: 20px;
+    font-family: var(--mono);
 }
 
 .tab-bar-divider {
     width: 1px;
-    height: 20px;
+    height: 34px;
 
     background: var(--border);
 }
 
 .tab-bar-quote {
-    max-width: 320px;
+    max-width: 360px;
 
     color: var(--text-soft);
-    font-size: 11px;
+    font-size: 13px;
     font-style: italic;
     text-align: right;
 
@@ -388,7 +378,7 @@ main {
 .page-placeholder h1 {
     margin: 8px 0 0;
 
-    font-family: var(--serif);
+    font-family: var(--mono);
     font-size: 34px;
     font-weight: 400;
 }
@@ -476,7 +466,7 @@ kbd {
     align-items: center;
     gap: 10px;
 
-    font-family: var(--serif);
+    font-family: var(--mono);
 }
 
 .widget-shortcut {
@@ -516,7 +506,7 @@ kbd {
 }
 
 .empty-widget span {
-    font-family: var(--serif);
+    font-family: var(--mono);
     font-size: 32px;
 }
 
@@ -548,7 +538,7 @@ kbd {
 }
 
 .todo-header-title {
-    font-family: var(--serif);
+    font-family: var(--mono);
 }
 
 .todo-header-count {
