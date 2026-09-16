@@ -6,6 +6,7 @@
     import TabBar from "./lib/components/TabBar.svelte";
     import Dashboard from "./lib/components/Dashboard.svelte";
     import TasksPage from "./lib/components/TasksPage.svelte";
+    import CalendarPage from "./lib/components/CalendarPage.svelte";
 
     import { tabs } from "./lib/navigation.js";
     import { widgets } from "./lib/widgets.js";
@@ -189,6 +190,8 @@
             <Dashboard />
         {:else if activeTab === "tasks"}
             <TasksPage />
+        {:else if activeTab === "calendar"}
+            <CalendarPage />
         {:else}
             <div class="page-placeholder">
                 <span class="eyebrow">
