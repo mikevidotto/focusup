@@ -1,6 +1,11 @@
 package calendar
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+var ErrNotFound = errors.New("event not found")
 
 // Event is a single scheduled item, optionally repeating via Recurrence.
 // For a repeating event, Start/End describe the first occurrence; later
@@ -55,6 +60,19 @@ type Occurrence struct {
 	// a stable key for matching an occurrence back to its Exception (or for
 	// creating a new one).
 	OriginalStart time.Time `json:"originalStart"`
+}
+
+// OccurrenceView pairs an expanded Occurrence with the Event it belongs to.
+// It's what the service hands to the frontend for date-ranged views (the
+// upcoming-events widget, the month grid) so the frontend never has to
+// re-derive recurrence itself.
+type OccurrenceView struct {
+	Occurrence
+	EventID     string `json:"eventId"`
+	Title       string `json:"title"`
+	Description string `json:"description,omitempty"`
+	Location    string `json:"location,omitempty"`
+	AllDay      bool   `json:"allDay"`
 }
 
 func sameCalendarDate(a, b time.Time) bool {

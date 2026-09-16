@@ -22,3 +22,13 @@ func IsReminderDue(occurrenceStart time.Time, r Reminder, now time.Time) bool {
 	fireTime := ReminderFireTime(occurrenceStart, r)
 	return !now.Before(fireTime) && now.Before(occurrenceStart)
 }
+
+// DueReminder describes a Reminder that is currently due for a specific
+// occurrence of its Event.
+type DueReminder struct {
+	EventID         string    `json:"eventId"`
+	EventTitle      string    `json:"eventTitle"`
+	ReminderID      string    `json:"reminderId"`
+	OccurrenceStart time.Time `json:"occurrenceStart"`
+	FireTime        time.Time `json:"fireTime"`
+}
