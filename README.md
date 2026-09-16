@@ -3,8 +3,8 @@ a personal desktop GUI application to stay focused and organized.
 
 #### TO DO
 
-[ ] build a menu interface controllable with the keyboard.
-[ ] build your first widget 
+[x] build a menu interface controllable with the keyboard.
+[ ] build your first widget: "To Do List"
 
 ### Widgets:
 [ ] Calendar
@@ -65,6 +65,7 @@ a personal desktop GUI application to stay focused and organized.
 ## About
 
 This is the official Wails Svelte template.
+\*\*\*Using Wails V2.16.0
 
 ## Live Development
 
