@@ -41,8 +41,8 @@ func (a *App) ListTasks() []tasks.Task {
 	return a.tasks.List()
 }
 
-func (a *App) AddTask(title string) (tasks.Task, error) {
-	return a.tasks.Add(title)
+func (a *App) AddTask(title, priority string) (tasks.Task, error) {
+	return a.tasks.Add(title, priority)
 }
 
 func (a *App) ToggleTask(id string) (tasks.Task, error) {

@@ -3,7 +3,7 @@
 import {tasks} from '../models';
 import {app} from '../models';
 
-export function AddTask(arg1:string):Promise<tasks.Task>;
+export function AddTask(arg1:string,arg2:string):Promise<tasks.Task>;
 
 export function DeleteTask(arg1:string):Promise<void>;
 

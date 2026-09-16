@@ -31,6 +31,7 @@
                     title={widget.title}
                     shortcut={widget.shortcut}
                     selected={$selectedWidgetId === widget.id}
+                    showHeader={!widget.customHeader}
                 >
                     {#if widget.component}
                         <svelte:component

@@ -11,7 +11,8 @@ export const widgets = [
         size: "large",
         row: 0,
         col: 0,
-        component: TodoWidget
+        component: TodoWidget,
+        customHeader: true
     },
     {
         id: "widget-2",

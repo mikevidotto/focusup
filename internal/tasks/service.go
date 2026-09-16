@@ -24,6 +24,10 @@ func NewService() (*Service, error) {
 		return nil, err
 	}
 
+	for i := range loaded {
+		loaded[i].Priority = normalizePriority(loaded[i].Priority)
+	}
+
 	return &Service{path: path, tasks: loaded}, nil
 }
 
@@ -37,13 +41,14 @@ func (s *Service) List() []Task {
 	return out
 }
 
-func (s *Service) Add(title string) (Task, error) {
+func (s *Service) Add(title, priority string) (Task, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	task := Task{
 		ID:        uuid.NewString(),
 		Title:     title,
+		Priority:  normalizePriority(priority),
 		CreatedAt: time.Now(),
 	}
 
@@ -63,6 +68,13 @@ func (s *Service) Toggle(id string) (Task, error) {
 	for i := range s.tasks {
 		if s.tasks[i].ID == id {
 			s.tasks[i].Done = !s.tasks[i].Done
+
+			if s.tasks[i].Done {
+				now := time.Now()
+				s.tasks[i].CompletedAt = &now
+			} else {
+				s.tasks[i].CompletedAt = nil
+			}
 
 			if err := save(s.path, s.tasks); err != nil {
 				return Task{}, err
