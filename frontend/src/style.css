@@ -674,6 +674,115 @@ kbd {
     font-size: 11px;
 }
 
+/* CALENDAR WIDGET */
+
+.calendar-widget {
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-widget-header {
+    min-height: 47px;
+    flex-shrink: 0;
+
+    padding: 0 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.calendar-widget-title {
+    font-family: var(--mono);
+}
+
+.calendar-widget-count {
+    color: var(--text-faint);
+    font-size: 11px;
+}
+
+.calendar-widget-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+
+    padding: 10px 16px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.calendar-widget-list {
+    margin: 0;
+    padding: 0;
+
+    list-style: none;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.calendar-widget-item {
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+
+    padding: 6px 8px;
+
+    border: 1px solid transparent;
+
+    color: var(--text);
+    font-size: 13px;
+    text-align: left;
+}
+
+.calendar-widget-item.cursor {
+    border-color: var(--accent-soft);
+    background: var(--surface-selected);
+}
+
+.calendar-widget-when {
+    flex-shrink: 0;
+
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+}
+
+.calendar-widget-event-title {
+    flex: 1;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.calendar-widget-more-hint {
+    flex-shrink: 0;
+
+    padding: 4px 8px;
+
+    color: var(--text-faint);
+    font-size: 11px;
+    font-style: italic;
+}
+
+.calendar-widget-error {
+    margin: 0;
+    padding: 6px 16px;
+
+    color: var(--accent);
+    font-size: 11px;
+}
+
 /* TASKS PAGE */
 
 .tasks-page {

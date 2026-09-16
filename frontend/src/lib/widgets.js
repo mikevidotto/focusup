@@ -1,4 +1,5 @@
 import TodoWidget from "./components/widgets/TodoWidget.svelte";
+import CalendarWidget from "./components/widgets/CalendarWidget.svelte";
 
 // row/col are logical grid positions used for spatial keyboard navigation.
 // col matches the actual CSS grid-column start on the 12-column grid
@@ -15,13 +16,14 @@ export const widgets = [
         customHeader: true
     },
     {
-        id: "widget-2",
-        title: "Widget Slot",
+        id: "calendar",
+        title: "Calendar",
         shortcut: "2",
         size: "medium",
         row: 0,
         col: 4,
-        component: null
+        component: CalendarWidget,
+        customHeader: true
     },
     {
         id: "widget-3",
