@@ -1,17 +1,45 @@
 <script>
     import { onMount } from "svelte";
+    import { get } from "svelte/store";
 
     import MenuBar from "./lib/components/MenuBar.svelte";
     import TabBar from "./lib/components/TabBar.svelte";
     import Dashboard from "./lib/components/Dashboard.svelte";
+    import TasksPage from "./lib/components/TasksPage.svelte";
 
     import { tabs } from "./lib/navigation.js";
+    import { widgets } from "./lib/widgets.js";
+    import { firstWidget, moveSelection } from "./lib/keyboardGrid.js";
+    import {
+        mode,
+        selectedWidgetId,
+        activeWidgetKeyHandler
+    } from "./lib/stores/keyboard.js";
+
+    const DIRECTIONS = { h: "left", l: "right", j: "down", k: "up" };
 
     let activeTab = "dashboard";
     let version = "0.1.0";
 
-    function selectTab(id) {
+    // The single place responsible for changing which tab is active. Always
+    // resets the dashboard's grid/widget-focus state; only releases the
+    // shared activeWidgetKeyHandler when the tab is actually changing, so a
+    // same-tab digit press can't wipe out a page's just-registered handler
+    // (e.g. pressing "2" again while already on the Tasks page).
+    function goToTab(id) {
+        const changingTab = id !== activeTab;
+
         activeTab = id;
+        mode.set("tabs");
+        selectedWidgetId.set(null);
+
+        if (changingTab) {
+            activeWidgetKeyHandler.set(null);
+        }
+    }
+
+    function selectTab(id) {
+        goToTab(id);
     }
 
     function moveTab(direction) {
@@ -27,7 +55,74 @@
             next = 0;
         }
 
-        activeTab = tabs[next].id;
+        goToTab(tabs[next].id);
+    }
+
+    function handleDashboardKey(event) {
+        const direction = DIRECTIONS[event.key];
+
+        if (direction) {
+            event.preventDefault();
+
+            const nextId = moveSelection(widgets, get(selectedWidgetId), direction);
+
+            if (nextId === null) {
+                mode.set("tabs");
+                selectedWidgetId.set(null);
+            } else {
+                selectedWidgetId.set(nextId);
+            }
+
+            return;
+        }
+
+        if (event.key === "Enter") {
+            event.preventDefault();
+            mode.set("widget");
+        }
+    }
+
+    // Reached only when currentMode === "tabs" (i.e. not locked into a
+    // dashboard widget or grid). Handles the always-available tab-bar keys;
+    // anything else (j/k/enter/a/x, etc.) falls through to whichever page
+    // has registered activeWidgetKeyHandler (e.g. the Tasks page), or is a
+    // no-op if nothing has.
+    function handleTabsAndPageKey(event) {
+        switch (event.key) {
+            case "h":
+                moveTab(-1);
+                return;
+
+            case "l":
+                moveTab(1);
+                return;
+
+            case "j": {
+                if (activeTab !== "dashboard") {
+                    break;
+                }
+
+                const first = firstWidget(widgets);
+
+                if (first) {
+                    mode.set("dashboard");
+                    selectedWidgetId.set(first.id);
+                }
+
+                return;
+            }
+
+            case "?":
+                console.log("Open keyboard help");
+                return;
+
+            case "/":
+                event.preventDefault();
+                console.log("Open command palette");
+                return;
+        }
+
+        get(activeWidgetKeyHandler)?.(event);
     }
 
     function handleKeyboard(event) {
@@ -41,31 +136,34 @@
             return;
         }
 
+        // Digit tab-shortcuts always work, regardless of mode (dashboard
+        // grid nav, a locked widget, or a page like Tasks owning the keys).
         const numericTab = tabs.find(tab => tab.key === event.key);
 
         if (numericTab) {
-            activeTab = numericTab.id;
+            selectTab(numericTab.id);
             return;
         }
 
-        switch (event.key) {
-            case "h":
-                moveTab(-1);
-                break;
+        const currentMode = get(mode);
 
-            case "l":
-                moveTab(1);
-                break;
-
-            case "?":
-                console.log("Open keyboard help");
-                break;
-
-            case "/":
+        if (currentMode === "widget") {
+            if (event.key === "q") {
                 event.preventDefault();
-                console.log("Open command palette");
-                break;
+                mode.set("dashboard");
+                return;
+            }
+
+            get(activeWidgetKeyHandler)?.(event);
+            return;
         }
+
+        if (currentMode === "dashboard") {
+            handleDashboardKey(event);
+            return;
+        }
+
+        handleTabsAndPageKey(event);
     }
 
     onMount(() => {
@@ -89,6 +187,8 @@
     <main>
         {#if activeTab === "dashboard"}
             <Dashboard />
+        {:else if activeTab === "tasks"}
+            <TasksPage />
         {:else}
             <div class="page-placeholder">
                 <span class="eyebrow">
@@ -114,6 +214,7 @@
             <span><kbd>h</kbd>/<kbd>l</kbd> tabs</span>
             <span><kbd>j</kbd>/<kbd>k</kbd> navigate</span>
             <span><kbd>enter</kbd> open</span>
+            <span><kbd>q</kbd> back</span>
             <span><kbd>/</kbd> command</span>
         </div>
 

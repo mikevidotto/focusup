@@ -7,17 +7,8 @@ html {
 body {
     margin: 0;
     color: white;
-    font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-}
-
-@font-face {
-    font-family: "Nunito";
-    font-style: normal;
-    font-weight: 400;
-    src: local(""),
-    url("assets/fonts/nunito-v16-latin-regular.woff2") format("woff2");
+    font-family: Consolas, "Cascadia Code", "SF Mono", Menlo, Monaco,
+    "Courier New", monospace;
 }
 
 #app {
@@ -25,22 +16,19 @@ body {
     text-align: center;
 }
 :root {
-    font-family:
-        Inter,
-        "Helvetica Neue",
-        Arial,
-        sans-serif;
+    font-family: Consolas, "Cascadia Code", "SF Mono", Menlo, Monaco,
+    "Courier New", monospace;
 
     color: #dedbd3;
-    background: #111210;
+    background: #090a08;
 
-    --bg: #111210;
-    --surface: #161715;
-    --surface-hover: #1c1d1a;
-    --surface-selected: #20211e;
+    --bg: #090a08;
+    --surface: #0d0e0c;
+    --surface-hover: #121310;
+    --surface-selected: #151613;
 
-    --border: #2b2c28;
-    --border-soft: #22231f;
+    --border: #21221d;
+    --border-soft: #181914;
 
     --text: #dedbd3;
     --text-soft: #8d8c85;
@@ -52,12 +40,14 @@ body {
     --success: #738d75;
     --warning: #b39562;
 
-    --serif:
-        "Iowan Old Style",
-        "Palatino Linotype",
-        Palatino,
-        Georgia,
-        serif;
+    --mono:
+        Consolas,
+        "Cascadia Code",
+        "SF Mono",
+        Menlo,
+        Monaco,
+        "Courier New",
+        monospace;
 }
 
 * {
@@ -90,7 +80,7 @@ button {
 .app-shell {
     height: 100vh;
     display: grid;
-    grid-template-rows: 54px 48px 1fr 38px;
+    grid-template-rows: 54px 52px 1fr 38px;
     background:
         radial-gradient(
             circle at 10% 0%,
@@ -222,7 +212,7 @@ button {
 }
 
 .brand strong {
-    font-family: var(--serif);
+    font-family: var(--mono);
     font-size: 20px;
     font-weight: 400;
 }
@@ -248,9 +238,9 @@ button {
 
 .tab-bar {
     display: flex;
-    align-items: end;
+    align-items: center;
 
-    padding: 0 28px;
+    padding: 0 20px;
 
     border-bottom: 1px solid var(--border);
 }
@@ -259,16 +249,17 @@ button {
     position: relative;
 
     height: 100%;
-    padding: 0 20px;
+    padding: 0 13px;
 
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 7px;
 
     border: 0;
     background: transparent;
 
     color: var(--text-soft);
+    font-size: 13px;
 
     cursor: pointer;
 }
@@ -285,8 +276,8 @@ button {
     content: "";
 
     position: absolute;
-    left: 20px;
-    right: 20px;
+    left: 13px;
+    right: 13px;
     bottom: -1px;
 
     height: 2px;
@@ -296,11 +287,62 @@ button {
 
 .tab-key {
     color: var(--text-faint);
-    font-size: 10px;
+    font-size: 9px;
 }
 
 .active .tab-key {
     color: var(--accent);
+}
+
+.tab-bar-meta {
+    margin-left: auto;
+
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.tab-bar-clock {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    line-height: 1.15;
+}
+
+.tab-bar-date {
+    color: var(--text-faint);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.tab-bar-time {
+    color: var(--text);
+    font-size: 32px;
+    font-family: var(--mono);
+}
+
+.tab-bar-divider {
+    width: 1px;
+    height: 34px;
+
+    background: var(--border);
+}
+
+.tab-bar-quote {
+    max-width: 360px;
+
+    color: var(--text-soft);
+    font-size: 13px;
+    font-style: italic;
+    text-align: right;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* CONTENT */
@@ -318,7 +360,7 @@ main {
 }
 
 .dashboard-heading {
-    margin-bottom: 32px;
+    margin-bottom: 16px;
 
     display: flex;
     align-items: end;
@@ -334,9 +376,9 @@ main {
 
 .dashboard-heading h1,
 .page-placeholder h1 {
-    margin: 8px 0 0;
+    margin: 4px 0 0;
 
-    font-family: var(--serif);
+    font-family: var(--mono);
     font-size: 34px;
     font-weight: 400;
 }
@@ -365,7 +407,7 @@ kbd {
     display: grid;
 
     grid-template-columns: repeat(12, 1fr);
-    grid-auto-rows: 250px;
+    grid-auto-rows: 160px;
 
     gap: 14px;
 }
@@ -375,7 +417,12 @@ kbd {
 }
 
 .widget-wrapper.medium {
-    grid-column: span 3;
+    grid-column: span 4;
+}
+
+.widget-wrapper.tall {
+    grid-column: span 4;
+    grid-row: span 2;
 }
 
 .widget-slot {
@@ -419,7 +466,7 @@ kbd {
     align-items: center;
     gap: 10px;
 
-    font-family: var(--serif);
+    font-family: var(--mono);
 }
 
 .widget-shortcut {
@@ -459,13 +506,216 @@ kbd {
 }
 
 .empty-widget span {
-    font-family: var(--serif);
+    font-family: var(--mono);
     font-size: 32px;
 }
 
 .empty-widget p {
     font-size: 11px;
     letter-spacing: 0.08em;
+}
+
+/* TODO WIDGET */
+
+.todo-widget {
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.todo-header {
+    min-height: 47px;
+    flex-shrink: 0;
+
+    padding: 0 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.todo-header-title {
+    font-family: var(--mono);
+}
+
+.todo-header-count {
+    color: var(--text-faint);
+    font-size: 11px;
+}
+
+.todo-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+
+    padding: 10px 16px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.todo-list {
+    margin: 0;
+    padding: 0;
+
+    list-style: none;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.todo-item {
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 6px 8px;
+
+    border: 1px solid transparent;
+
+    color: var(--text);
+    font-size: 13px;
+    text-align: left;
+}
+
+.todo-item.cursor {
+    border-color: var(--accent-soft);
+    background: var(--surface-selected);
+}
+
+.todo-item.done {
+    color: var(--text-faint);
+    text-decoration: line-through;
+}
+
+.todo-mark {
+    flex-shrink: 0;
+    color: var(--accent);
+}
+
+.todo-mark-done {
+    color: var(--success);
+}
+
+.todo-title {
+    flex: 1;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.todo-priority {
+    flex-shrink: 0;
+    width: 14px;
+
+    font-size: 12px;
+    text-align: center;
+}
+
+.todo-completed-date {
+    flex-shrink: 0;
+
+    color: var(--text-faint);
+    font-size: 11px;
+}
+
+.todo-more-hint {
+    flex-shrink: 0;
+
+    padding: 4px 8px;
+
+    color: var(--text-faint);
+    font-size: 11px;
+    font-style: italic;
+}
+
+.todo-section-label {
+    margin-top: 4px;
+
+    color: var(--text-faint);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.todo-input {
+    flex: 1;
+    flex-shrink: 0;
+
+    padding: 10px 16px;
+
+    border: 0;
+    border-top: 1px solid var(--border-soft);
+
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+
+    outline: none;
+}
+
+.todo-input::placeholder {
+    color: var(--text-faint);
+}
+
+.todo-error {
+    margin: 0;
+    padding: 6px 16px;
+
+    color: var(--accent);
+    font-size: 11px;
+}
+
+/* TASKS PAGE */
+
+.tasks-page {
+    text-align: left;
+}
+
+.tasks-heading-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.tasks-hint {
+    margin: 8px 0 24px;
+
+    color: var(--text-faint);
+    font-size: 11px;
+}
+
+.tasks-add-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.priority-picker {
+    flex-shrink: 0;
+
+    padding: 8px 12px;
+
+    border: 1px solid var(--border);
+    background: transparent;
+
+    font-size: 12px;
+    font-family: inherit;
+
+    cursor: pointer;
+}
+
+.priority-picker:hover {
+    background: var(--surface-hover);
 }
 
 /* PLACEHOLDER PAGES */

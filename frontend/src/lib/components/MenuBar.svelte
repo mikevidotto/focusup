@@ -21,14 +21,14 @@
     <div class="window-controls">
         <button
             aria-label="Minimize"
-            onclick={WindowMinimise}
+            on:click={WindowMinimise}
         >
             ─
         </button>
 
         <button
             aria-label="Maximize"
-            onclick={WindowToggleMaximise}
+            on:click={WindowToggleMaximise}
         >
             □
         </button>
@@ -36,7 +36,7 @@
         <button
             class="close"
             aria-label="Close"
-            onclick={Quit}
+            on:click={Quit}
         >
             ×
         </button>

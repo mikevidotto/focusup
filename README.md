@@ -4,7 +4,7 @@ a personal desktop GUI application to stay focused and organized.
 #### TO DO
 
 [x] build a menu interface controllable with the keyboard.
-[ ] build your first widget: "To Do List"
+[x] build your first widget: "To Do List"
 
 ### Widgets:
 [ ] Calendar
