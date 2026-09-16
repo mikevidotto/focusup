@@ -12,19 +12,27 @@ import (
 var assets embed.FS
 
 func main() {
-	// Create an instance of the app structure
 	app := NewApp()
 
-	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "focusup",
-		Width:  1024,
-		Height: 768,
+		Title:     "FocusUp",
+		Width:     1440,
+		Height:    900,
+		Frameless: true,
+
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
-		OnStartup:        app.startup,
+
+		BackgroundColour: &options.RGBA{
+			R: 17,
+			G: 18,
+			B: 16,
+			A: 1,
+		},
+
+		OnStartup: app.startup,
+
 		Bind: []interface{}{
 			app,
 		},

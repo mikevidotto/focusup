@@ -1,79 +1,122 @@
 <script>
-  import logo from './assets/images/logo-universal.png'
-  import {Greet} from '../wailsjs/go/main/App.js'
+    import { onMount } from "svelte";
 
-  let resultText = "Please enter your name below 👇"
-  let name
+    import MenuBar from "./lib/components/MenuBar.svelte";
+    import TabBar from "./lib/components/TabBar.svelte";
+    import Dashboard from "./lib/components/Dashboard.svelte";
 
-  function greet() {
-    Greet(name).then(result => resultText = result)
-  }
+    import { tabs } from "./lib/navigation.js";
+
+    let activeTab = "dashboard";
+    let version = "0.1.0";
+
+    function selectTab(id) {
+        activeTab = id;
+    }
+
+    function moveTab(direction) {
+        const index = tabs.findIndex(tab => tab.id === activeTab);
+
+        let next = index + direction;
+
+        if (next < 0) {
+            next = tabs.length - 1;
+        }
+
+        if (next >= tabs.length) {
+            next = 0;
+        }
+
+        activeTab = tabs[next].id;
+    }
+
+    function handleKeyboard(event) {
+        const target = event.target;
+
+        if (
+            target instanceof HTMLInputElement ||
+            target instanceof HTMLTextAreaElement ||
+            target instanceof HTMLSelectElement
+        ) {
+            return;
+        }
+
+        const numericTab = tabs.find(tab => tab.key === event.key);
+
+        if (numericTab) {
+            activeTab = numericTab.id;
+            return;
+        }
+
+        switch (event.key) {
+            case "h":
+                moveTab(-1);
+                break;
+
+            case "l":
+                moveTab(1);
+                break;
+
+            case "?":
+                console.log("Open keyboard help");
+                break;
+
+            case "/":
+                event.preventDefault();
+                console.log("Open command palette");
+                break;
+        }
+    }
+
+    onMount(() => {
+        window.addEventListener("keydown", handleKeyboard);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyboard);
+        };
+    });
 </script>
 
-<main>
-  <img alt="Wails logo" id="logo" src="{logo}">
-  <div class="result" id="result">{resultText}</div>
-  <div class="input-box" id="input">
-    <input autocomplete="off" bind:value={name} class="input" id="name" type="text"/>
-    <button class="btn" on:click={greet}>Greet</button>
-  </div>
-</main>
+<div class="app-shell">
+    <MenuBar {version} />
 
-<style>
+    <TabBar
+        {tabs}
+        {activeTab}
+        onSelect={selectTab}
+    />
 
-  #logo {
-    display: block;
-    width: 50%;
-    height: 50%;
-    margin: auto;
-    padding: 10% 0 0;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    background-origin: content-box;
-  }
+    <main>
+        {#if activeTab === "dashboard"}
+            <Dashboard />
+        {:else}
+            <div class="page-placeholder">
+                <span class="eyebrow">
+                    FOCUSUP / {activeTab.toUpperCase()}
+                </span>
 
-  .result {
-    height: 20px;
-    line-height: 20px;
-    margin: 1.5rem auto;
-  }
+                <h1>
+                    {tabs.find(tab => tab.id === activeTab)?.label}
+                </h1>
 
-  .input-box .btn {
-    width: 60px;
-    height: 30px;
-    line-height: 30px;
-    border-radius: 3px;
-    border: none;
-    margin: 0 0 0 20px;
-    padding: 0 8px;
-    cursor: pointer;
-  }
+                <p>This section is ready to be built.</p>
+            </div>
+        {/if}
+    </main>
 
-  .input-box .btn:hover {
-    background-image: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%);
-    color: #333333;
-  }
+    <footer>
+        <div>
+            <span>FOCUSUP</span>
+            <span>v{version}</span>
+        </div>
 
-  .input-box .input {
-    border: none;
-    border-radius: 3px;
-    outline: none;
-    height: 30px;
-    line-height: 30px;
-    padding: 0 10px;
-    background-color: rgba(240, 240, 240, 1);
-    -webkit-font-smoothing: antialiased;
-  }
+        <div class="footer-keys">
+            <span><kbd>h</kbd>/<kbd>l</kbd> tabs</span>
+            <span><kbd>j</kbd>/<kbd>k</kbd> navigate</span>
+            <span><kbd>enter</kbd> open</span>
+            <span><kbd>/</kbd> command</span>
+        </div>
 
-  .input-box .input:hover {
-    border: none;
-    background-color: rgba(255, 255, 255, 1);
-  }
-
-  .input-box .input:focus {
-    border: none;
-    background-color: rgba(255, 255, 255, 1);
-  }
-
-</style>
+        <span class="footer-message">より良い自分へ</span>
+    </footer>
+</div>
