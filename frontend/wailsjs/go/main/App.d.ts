@@ -5,7 +5,7 @@ import {calendar} from '../models';
 import {tasks} from '../models';
 import {app} from '../models';
 
-export function AddEvent(arg1:string,arg2:string,arg3:string,arg4:time.Time,arg5:time.Time,arg6:boolean,arg7:calendar.RecurrenceRule):Promise<calendar.Event>;
+export function AddEvent(arg1:string,arg2:string,arg3:string,arg4:time.Time,arg5:time.Time,arg6:boolean,arg7:calendar.RecurrenceRule,arg8:boolean):Promise<calendar.Event>;
 
 export function AddReminder(arg1:string,arg2:number):Promise<calendar.Event>;
 

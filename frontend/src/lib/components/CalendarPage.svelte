@@ -2,11 +2,9 @@
     import { onMount, onDestroy } from "svelte";
 
     import { activeWidgetKeyHandler } from "../stores/keyboard.js";
-    import { buildMonthGrid, isSameDay, moveDayCursor } from "../calendarGrid.js";
+    import { buildMonthGrid, isSameDay, moveDayCursor, WEEKDAY_LABELS } from "../calendarGrid.js";
     import { formatOccurrenceTime, occurrenceKey } from "../calendarDisplay.js";
     import { ListCalendarOccurrences } from "../../../wailsjs/go/main/App.js";
-
-    const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     const today = new Date();
 
@@ -60,14 +58,24 @@
 
     function handleKey(event) {
         switch (event.key) {
+            case "h":
+                event.preventDefault();
+                cursor = moveDayCursor(cells, cursor, "left");
+                break;
+
+            case "l":
+                event.preventDefault();
+                cursor = moveDayCursor(cells, cursor, "right");
+                break;
+
             case "j":
                 event.preventDefault();
-                cursor = moveDayCursor(cells, cursor, "next");
+                cursor = moveDayCursor(cells, cursor, "down");
                 break;
 
             case "k":
                 event.preventDefault();
-                cursor = moveDayCursor(cells, cursor, "prev");
+                cursor = moveDayCursor(cells, cursor, "up");
                 break;
 
             case "[":
@@ -110,7 +118,7 @@
     </div>
 
     <div class="tasks-hint">
-        <kbd>j</kbd><kbd>k</kbd> move day
+        <kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd> move day
         <kbd>[</kbd><kbd>]</kbd> change month
     </div>
 

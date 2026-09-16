@@ -86,8 +86,8 @@ func (a *App) ListCalendarOccurrences(rangeStart, rangeEnd time.Time) []calendar
 	return a.calendar.ListOccurrences(rangeStart, rangeEnd)
 }
 
-func (a *App) AddEvent(title, description, location string, start, end time.Time, allDay bool, recurrence *calendar.RecurrenceRule) (calendar.Event, error) {
-	return a.calendar.Add(title, description, location, start, end, allDay, recurrence)
+func (a *App) AddEvent(title, description, location string, start, end time.Time, allDay bool, recurrence *calendar.RecurrenceRule, important bool) (calendar.Event, error) {
+	return a.calendar.Add(title, description, location, start, end, allDay, recurrence, important)
 }
 
 func (a *App) AddReminder(eventID string, leadTimeSeconds int) (calendar.Event, error) {

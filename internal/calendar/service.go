@@ -40,7 +40,7 @@ func (s *Service) List() []Event {
 	return out
 }
 
-func (s *Service) Add(title, description, location string, start, end time.Time, allDay bool, recurrence *RecurrenceRule) (Event, error) {
+func (s *Service) Add(title, description, location string, start, end time.Time, allDay bool, recurrence *RecurrenceRule, important bool) (Event, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -52,6 +52,7 @@ func (s *Service) Add(title, description, location string, start, end time.Time,
 		Start:       start,
 		End:         end,
 		AllDay:      allDay,
+		Important:   important,
 		Recurrence:  recurrence,
 		CreatedAt:   time.Now(),
 	}
@@ -123,6 +124,7 @@ func (s *Service) ListOccurrences(rangeStart, rangeEnd time.Time) []OccurrenceVi
 				Description: e.Description,
 				Location:    e.Location,
 				AllDay:      e.AllDay,
+				Important:   e.Important,
 			})
 		}
 	}

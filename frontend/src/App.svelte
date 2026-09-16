@@ -89,13 +89,24 @@
     // anything else (j/k/enter/a/x, etc.) falls through to whichever page
     // has registered activeWidgetKeyHandler (e.g. the Tasks page), or is a
     // no-op if nothing has.
+    //
+    // h/l are tab-switching by default, but the Calendar page claims them
+    // for its own left/right day-grid movement (it has a genuine 2D grid,
+    // unlike Tasks) — same escape hatch the "j" case below already uses for
+    // the dashboard tab.
     function handleTabsAndPageKey(event) {
         switch (event.key) {
             case "h":
+                if (activeTab === "calendar") {
+                    break;
+                }
                 moveTab(-1);
                 return;
 
             case "l":
+                if (activeTab === "calendar") {
+                    break;
+                }
                 moveTab(1);
                 return;
 

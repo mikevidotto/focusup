@@ -151,6 +151,7 @@ export namespace calendar {
 	    start: time.Time;
 	    end: time.Time;
 	    allDay: boolean;
+	    important: boolean;
 	    recurrence?: RecurrenceRule;
 	    exceptions?: Exception[];
 	    reminders?: Reminder[];
@@ -169,6 +170,7 @@ export namespace calendar {
 	        this.start = this.convertValues(source["start"], time.Time);
 	        this.end = this.convertValues(source["end"], time.Time);
 	        this.allDay = source["allDay"];
+	        this.important = source["important"];
 	        this.recurrence = this.convertValues(source["recurrence"], RecurrenceRule);
 	        this.exceptions = this.convertValues(source["exceptions"], Exception);
 	        this.reminders = this.convertValues(source["reminders"], Reminder);
@@ -203,6 +205,7 @@ export namespace calendar {
 	    description?: string;
 	    location?: string;
 	    allDay: boolean;
+	    important: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new OccurrenceView(source);
@@ -218,6 +221,7 @@ export namespace calendar {
 	        this.description = source["description"];
 	        this.location = source["location"];
 	        this.allDay = source["allDay"];
+	        this.important = source["important"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

@@ -737,19 +737,12 @@ kbd {
 
     padding: 6px 8px;
 
-    border: 1px solid transparent;
-
     color: var(--text);
     font-size: 13px;
     text-align: left;
 }
 
-.calendar-widget-item.cursor {
-    border-color: var(--accent-soft);
-    background: var(--surface-selected);
-}
-
-.calendar-widget-when {
+.calendar-widget-time {
     flex-shrink: 0;
 
     color: var(--accent);
@@ -765,22 +758,99 @@ kbd {
     white-space: nowrap;
 }
 
-.calendar-widget-more-hint {
-    flex-shrink: 0;
-
-    padding: 4px 8px;
-
-    color: var(--text-faint);
-    font-size: 11px;
-    font-style: italic;
-}
-
 .calendar-widget-error {
     margin: 0;
     padding: 6px 16px;
 
     color: var(--accent);
     font-size: 11px;
+}
+
+.calendar-widget-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.calendar-widget-week-cell {
+    padding: 6px 2px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    border: 1px solid transparent;
+}
+
+.calendar-widget-week-cell.today {
+    border-color: var(--accent-soft);
+    background: var(--surface-selected);
+}
+
+.calendar-widget-weekday {
+    color: var(--text-faint);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.calendar-widget-month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+}
+
+.calendar-widget-month-weekday {
+    padding-bottom: 2px;
+
+    color: var(--text-faint);
+    font-size: 9px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.calendar-widget-month-cell {
+    padding: 3px 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.calendar-widget-month-cell.dimmed .calendar-widget-day-number {
+    color: var(--text-faint);
+}
+
+.calendar-widget-month-cell.today .calendar-widget-day-number {
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.calendar-widget-day-number {
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+}
+
+.calendar-widget-dot {
+    width: 4px;
+    height: 4px;
+
+    border-radius: 50%;
+    background: transparent;
+
+    visibility: hidden;
+}
+
+.calendar-widget-dot.visible {
+    visibility: visible;
+    background: var(--text-soft);
+}
+
+.calendar-widget-dot.important {
+    background: var(--accent);
 }
 
 /* TASKS PAGE */
