@@ -5,16 +5,24 @@ import (
 	"log"
 	"time"
 
+	"github.com/wailsapp/wails/v2/pkg/runtime"
+
 	appservice "focusup/internal/app"
 	"focusup/internal/calendar"
+	"focusup/internal/notifier"
 	"focusup/internal/tasks"
 )
+
+// reminderDueEvent is the Wails runtime event name the frontend listens on
+// (via EventsOn) to show an in-app popup when a reminder fires.
+const reminderDueEvent = "calendar:reminder-due"
 
 type App struct {
 	ctx         context.Context
 	infoService *appservice.InfoService
 	tasks       *tasks.Service
 	calendar    *calendar.Service
+	notifier    *notifier.Notifier
 }
 
 func NewApp() *App {
@@ -28,15 +36,23 @@ func NewApp() *App {
 		log.Fatalf("failed to initialize calendar storage: %v", err)
 	}
 
-	return &App{
+	app := &App{
 		infoService: appservice.NewInfoService(),
 		tasks:       taskService,
 		calendar:    calendarService,
 	}
+
+	app.notifier = notifier.New(calendarService, func(reminder calendar.DueReminder) {
+		runtime.EventsEmit(app.ctx, reminderDueEvent, reminder)
+	})
+
+	return app
 }
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+
+	go a.notifier.Run(ctx)
 }
 
 // GetAppInfo is an example of the frontend calling the Go backend.

@@ -7,6 +7,7 @@
     import Dashboard from "./lib/components/Dashboard.svelte";
     import TasksPage from "./lib/components/TasksPage.svelte";
     import CalendarPage from "./lib/components/CalendarPage.svelte";
+    import ReminderPopup from "./lib/components/ReminderPopup.svelte";
 
     import { tabs } from "./lib/navigation.js";
     import { widgets } from "./lib/widgets.js";
@@ -223,4 +224,6 @@
 
         <span class="footer-message">より良い自分へ</span>
     </footer>
+
+    <ReminderPopup />
 </div>

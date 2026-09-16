@@ -28,12 +28,16 @@ Currently being built: a **Calendar** widget/feature — recurring event schedul
 │   │   ├── task.go                #   struct + constants + pure helpers (e.g. normalizePriority)
 │   │   ├── service.go             #   business logic, mutex-guarded in-memory state, calls store
 │   │   └── store.go                #   load/save to a JSON file in os.UserConfigDir()
-│   └── calendar/                  # Calendar feature — see "Calendar file split" below
-│       ├── event.go               #   Event, Exception, Occurrence, OccurrenceView types
-│       ├── recurrence.go          #   RecurrenceRule + Occurrences() expansion (pure, tested)
-│       ├── reminder.go            #   Reminder, DueReminder + lead-time due calculation (pure, tested)
-│       ├── service.go             #   Service struct, mutex + JSON store, wraps the pure functions above
-│       └── store.go                #   load/save to calendar.json in os.UserConfigDir()
+│   ├── calendar/                  # Calendar feature — see "Calendar file split" below
+│   │   ├── event.go               #   Event, Exception, Occurrence, OccurrenceView types
+│   │   ├── recurrence.go          #   RecurrenceRule + Occurrences() expansion (pure, tested)
+│   │   ├── reminder.go            #   Reminder, DueReminder + lead-time due calculation (pure, tested)
+│   │   ├── service.go             #   Service struct, mutex + JSON store, wraps the pure functions above
+│   │   └── store.go                #   load/save to calendar.json in os.UserConfigDir()
+│   ├── notify/
+│   │   └── toast.go               # Push(title, body) — thin wrapper around go-toast (Windows OS toast)
+│   └── notifier/
+│       └── notifier.go            # Notifier.Run(ctx) — polls calendar.Service.DueReminders, fires each once
 ├── frontend/
 │   ├── src/
 │   │   ├── App.svelte             # Root: keyboard state machine, tab routing, layout shell
@@ -41,15 +45,20 @@ Currently being built: a **Calendar** widget/feature — recurring event schedul
 │   │   │   ├── navigation.js       # `tabs` array — top-level tab bar definition
 │   │   │   ├── widgets.js          # `widgets` array — dashboard grid definition (id/size/row/col/component)
 │   │   │   ├── keyboardGrid.js     # Pure spatial nav helpers (moveSelection, firstWidget) over widgets[]
+│   │   │   ├── calendarGrid.js     # Pure spatial nav helpers (buildMonthGrid, moveDayCursor) for the month page
 │   │   │   ├── taskDisplay.js      # Presentation helpers for the tasks feature (formatting, grouping)
+│   │   │   ├── calendarDisplay.js  # Presentation helpers for the calendar feature (formatting, #each keys)
 │   │   │   ├── stores/keyboard.js  # `mode`, `selectedWidgetId`, `activeWidgetKeyHandler` stores — see below
 │   │   │   └── components/
 │   │   │       ├── Dashboard.svelte    # Renders widgets[] into the grid via WidgetSlot
 │   │   │       ├── WidgetSlot.svelte   # Generic widget chrome (header/shortcut/selected state)
 │   │   │       ├── TabBar.svelte, MenuBar.svelte
 │   │   │       ├── TasksPage.svelte    # Reference: a full page (not just a widget) for a feature
+│   │   │       ├── CalendarPage.svelte # Full page: month grid view, routed like TasksPage
+│   │   │       ├── ReminderPopup.svelte # Global overlay: listens for the "calendar:reminder-due" event
 │   │   │       └── widgets/
-│   │   │           └── TodoWidget.svelte   # Reference: a dashboard-grid widget implementation
+│   │   │           ├── TodoWidget.svelte   # Reference: a dashboard-grid widget implementation
+│   │   │           └── CalendarWidget.svelte # Next 3-5 upcoming events/reminders
 │   │   └── main.js
 │   └── wailsjs/go/main/App.js     # AUTO-GENERATED bindings — regenerate via `wails dev`/`wails build`, never hand-edit
 ```
@@ -91,6 +100,12 @@ Follow `internal/tasks/` exactly:
 - `service.go` / `store.go` — same shape as `internal/tasks/`, persisting to `calendar.json`.
 - Bound `app.go` methods: `ListEvents`, `ListCalendarOccurrences` (date-ranged, recurrence-expanded — this is what the widget/month-page should call, never `ListEvents` + frontend-side date math), `AddEvent`, `AddReminder`, `DeleteEvent`, `GetDueReminders`.
 
+**Notifications (decided, see `internal/notify/`, `internal/notifier/`):**
+- `internal/notify` is a thin wrapper around `go-toast` (`Push(title, body)`) — see the resolved "OS-level push notifications" question below for why it lives here instead of inline in `notifier`.
+- `internal/notifier.Notifier` owns the actual polling: `Run(ctx)` calls `calendar.Service.DueReminders(now)` every 30s, dedups by `eventID|reminderID|occurrenceStart` (pruned after 24h past the occurrence, so a long-running app doesn't leak memory), and for every reminder that's newly due, pushes an OS toast **and** invokes a caller-supplied `DueHandler`.
+- `app.go` wires the `DueHandler` in `NewApp()` to `runtime.EventsEmit(a.ctx, "calendar:reminder-due", reminder)`, and starts `notifier.Run(ctx)` as a goroutine in `startup()`. This is the one place `app.go` does more than a one-line method delegation — it's still just wiring (a single `EventsEmit` call in a closure), not business logic; the actual due/dedup/fire policy lives in `internal/notifier`.
+- Frontend: `ReminderPopup.svelte` (mounted once, globally, in `App.svelte`) subscribes to the `"calendar:reminder-due"` event via `EventsOn` from `wailsjs/runtime/runtime.js` and renders a dismissible, auto-expiring popup stack. It does not touch `activeWidgetKeyHandler` or listen to `window` keydown — dismissal is click-only, so it can't conflict with the global keyboard dispatch.
+
 **Frontend — the three-mode keyboard state machine:**
 `stores/keyboard.js` defines `mode` as one of:
 - `"tabs"` — top-level tab bar owns input (h/l cycle tabs, digit keys jump tabs)
@@ -106,7 +121,7 @@ Any new widget must, like `TodoWidget.svelte`:
 New dashboard widgets are added to the `widgets` array in `lib/widgets.js` with `id`, `title`, `shortcut`, `size` (`tall`/`medium`/etc., maps to a CSS grid span), and explicit `row`/`col` (logical grid position used by `keyboardGrid.js` for spatial nav — must match the actual CSS grid placement or navigation will feel wrong). There are currently two open slots (`widget-2`, `widget-3`) with `component: null` — Calendar is filling one of these (see Decisions Made).
 
 **Full pages vs. widgets:**
-Some features (Tasks) have both a compact dashboard widget AND a dedicated full page reached via the tab bar (`navigation.js` + routing in `App.svelte`). Decide up front whether Calendar needs both (a small "next 3 events" widget plus a full month-view page) or just one.
+Some features (Tasks, now Calendar) have both a compact dashboard widget AND a dedicated full page reached via the tab bar (`navigation.js` + routing in `App.svelte`). A full page's key handler is set unconditionally in `onMount`/cleared in `onDestroy` (see `TasksPage.svelte`/`CalendarPage.svelte`) rather than gated by a `focused` prop like a dashboard widget — the page owns the whole view whenever its tab is active, there's no separate "focused" state to gate on. Note also that `App.svelte` reserves `h`/`l` globally for tab switching in `"tabs"` mode (which every full page runs in), so a page's own navigation can only use other keys — see `CalendarPage.svelte`'s comment for how that shaped its day-grid movement (j/k + `[`/`]`, not h/j/k/l).
 
 ## Coding Conventions
 
@@ -124,7 +139,6 @@ Some features (Tasks) have both a compact dashboard widget AND a dedicated full 
 
 ## Open Questions / Decisions Pending
 
-- OS-level push notifications: confirm whether `go-toast` (already an indirect dependency) is already wired up anywhere or just transitively pulled in by Wails and unused.
 - Two-way sync with an external calendar (Google/Apple) — in scope for v1 or later?
 - Notes: does it need a dedicated full page, or is a widget-opens-to-modal pattern enough? Decide after Calendar/Habits ship and the widget-vs-page tradeoff is clearer in practice.
 
@@ -134,3 +148,4 @@ Some features (Tasks) have both a compact dashboard widget AND a dedicated full 
 - **Calendar v1 excludes:** holiday-awareness/auto-shifting, weather-based reminders, location-based reminders, external calendar sync. Revisit as "someday" items once core scheduling + reminders work.
 - **Calendar storage:** a flat `calendar.json` file under `os.UserConfigDir()/focusup/`, matching `tasks.json`'s pattern — not SQLite. Recurrence/exception data nests inside each `Event` (an `Event` owns its own `RecurrenceRule` and `[]Exception`), so it's still a flat list of events, not a relational schema. Revisit only if cross-event queries (e.g. "all exceptions in date range X across all events") become a real need — nothing in v1 requires that.
 - **Next widgets after Calendar:** Habit Tracker, then Notes.
+- **OS-level push notifications:** `go-toast` was an indirect dependency (pulled in transitively by Wails, not imported anywhere) before this work — confirmed by `grep -rn "toast" --include="*.go" .` turning up nothing in our own code. It's now wired up directly in `internal/notify` and used by `internal/notifier`; `go.mod` reflects it as a direct dependency.
