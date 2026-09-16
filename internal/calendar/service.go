@@ -110,7 +110,10 @@ func (s *Service) AddReminder(eventID string, leadTime time.Duration) (Event, er
 func (s *Service) ListOccurrences(rangeStart, rangeEnd time.Time) []OccurrenceView {
 	events := s.List()
 
-	var out []OccurrenceView
+	// Always a non-nil slice: this is marshaled straight to JSON for the
+	// frontend, and a nil slice becomes `null` there, not `[]` — which
+	// breaks any array method the frontend calls on it (e.g. .slice()).
+	out := []OccurrenceView{}
 	for _, e := range events {
 		for _, occ := range Occurrences(e, rangeStart, rangeEnd) {
 			out = append(out, OccurrenceView{
@@ -138,7 +141,7 @@ func (s *Service) ListOccurrences(rangeStart, rangeEnd time.Time) []OccurrenceVi
 func (s *Service) DueReminders(now time.Time) []DueReminder {
 	events := s.List()
 
-	var out []DueReminder
+	out := []DueReminder{} // see the same note in ListOccurrences
 	for _, e := range events {
 		if len(e.Reminders) == 0 {
 			continue

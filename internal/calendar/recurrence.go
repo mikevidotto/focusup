@@ -146,7 +146,7 @@ func Occurrences(e Event, rangeStart, rangeEnd time.Time) []Occurrence {
 		rawDates = rawOccurrenceDates(e.Start, *e.Recurrence, rangeEnd)
 	}
 
-	var out []Occurrence
+	out := []Occurrence{} // never nil — see the note on ListOccurrences in service.go
 	for _, raw := range rawDates {
 		occ := Occurrence{
 			Start:         raw,

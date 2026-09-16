@@ -213,6 +213,26 @@ func TestOccurrences_Recurrence(t *testing.T) {
 	}
 }
 
+// Occurrences is JSON-marshaled straight to the frontend, where a nil slice
+// becomes `null` instead of `[]` and breaks any array method called on it
+// (this broke the dashboard widget in practice — see service.go's
+// ListOccurrences). Guard against regressing back to a nil result.
+func TestOccurrences_NeverReturnsNilWhenEmpty(t *testing.T) {
+	e := Event{
+		Start: dt(2026, 1, 5, 9, 0),
+		End:   dt(2026, 1, 5, 10, 0),
+	}
+
+	got := Occurrences(e, dt(2030, 1, 1, 0, 0), dt(2030, 1, 2, 0, 0))
+
+	if got == nil {
+		t.Fatal("Occurrences returned nil, want a non-nil empty slice")
+	}
+	if len(got) != 0 {
+		t.Fatalf("got %d occurrences, want 0", len(got))
+	}
+}
+
 func TestOccurrences_RescheduleKeepsDurationWhenNewEndOmitted(t *testing.T) {
 	e := Event{
 		Start:      dt(2026, 1, 5, 9, 0),
