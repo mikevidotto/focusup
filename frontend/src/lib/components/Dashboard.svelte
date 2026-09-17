@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from "svelte";
 
     import WidgetSlot from "./WidgetSlot.svelte";
+    import DueSoonBanner from "./DueSoonBanner.svelte";
     import { widgets } from "../widgets.js";
     import { mode, selectedWidgetId } from "../stores/keyboard.js";
     import { getGreeting } from "../greeting.js";
@@ -40,6 +41,8 @@
             back
         </div>
     </div>
+
+    <DueSoonBanner />
 
     <div class="widget-grid">
         {#each widgets as widget (widget.id)}

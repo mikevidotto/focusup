@@ -2,7 +2,14 @@
     import { onMount } from "svelte";
 
     import { activeWidgetKeyHandler } from "../../stores/keyboard.js";
-    import { buildWeekGrid, buildMonthGrid, isSameDay, WEEKDAY_LABELS } from "../../calendarGrid.js";
+    import {
+        buildWeekGrid,
+        buildMonthGrid,
+        isSameDay,
+        startOfDay,
+        endOfDay,
+        WEEKDAY_LABELS
+    } from "../../calendarGrid.js";
     import { formatOccurrenceTime, occurrenceKey } from "../../calendarDisplay.js";
     import { ListCalendarOccurrences, ToggleEventCompletion } from "../../../../wailsjs/go/main/App.js";
 
@@ -18,14 +25,6 @@
     let occurrences = [];
     let loading = true;
     let error = null;
-
-    function startOfDay(date) {
-        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    }
-
-    function endOfDay(date) {
-        return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
-    }
 
     async function fetchOccurrences() {
         loading = true;
@@ -63,24 +62,6 @@
         }
     }
 
-    function occurrencesForDay(date) {
-        return occurrences.filter(o => isSameDay(new Date(o.start), date));
-    }
-
-    // null = no events that day, "done" = every event that day is done,
-    // "important" = not every event is done and at least one is important,
-    // "normal" = events but none done/important.
-    function dayIndicator(date) {
-        const dayOccs = occurrencesForDay(date);
-        if (dayOccs.length === 0) {
-            return null;
-        }
-        if (dayOccs.every(o => o.done)) {
-            return "done";
-        }
-        return dayOccs.some(o => o.important) ? "important" : "normal";
-    }
-
     function cycleMode(delta) {
         const index = MODES.indexOf(mode);
         mode = MODES[(index + delta + MODES.length) % MODES.length];
@@ -110,6 +91,29 @@
     } else {
         activeWidgetKeyHandler.set(null);
     }
+
+    // Reactive *functions*, not plain ones: Svelte's dependency tracking for
+    // `$:`/`{@const}` only sees identifiers referenced directly in that
+    // expression, not inside a called function's body — a plain function
+    // closing over `occurrences` would silently stop updating callers
+    // whenever `occurrences` changes without some *other* tracked variable
+    // also happening to change. Declaring these with `$:` makes each
+    // function itself a tracked dependency wherever it's called.
+    $: occurrencesForDay = date => occurrences.filter(o => isSameDay(new Date(o.start), date));
+
+    // null = no events that day, "done" = every event that day is done,
+    // "important" = not every event is done and at least one is important,
+    // "normal" = events but none done/important.
+    $: dayIndicator = date => {
+        const dayOccs = occurrencesForDay(date);
+        if (dayOccs.length === 0) {
+            return null;
+        }
+        if (dayOccs.every(o => o.done)) {
+            return "done";
+        }
+        return dayOccs.some(o => o.important) ? "important" : "normal";
+    };
 
     $: todayOccurrences = occurrencesForDay(today).sort((a, b) => new Date(a.start) - new Date(b.start));
     $: modeLabel =

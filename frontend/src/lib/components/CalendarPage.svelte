@@ -59,12 +59,6 @@
         }
     }
 
-    function occurrencesForDay(date) {
-        return occurrences
-            .filter(o => isSameDay(new Date(o.start), date))
-            .sort((a, b) => new Date(a.start) - new Date(b.start));
-    }
-
     function handleKey(event) {
         switch (event.key) {
             case "h":
@@ -121,6 +115,17 @@
         year: "numeric"
     });
     $: selectedCell = cells[cursor];
+    // A reactive *function*, not a plain one: Svelte's dependency tracking
+    // for `$:`/`{@const}` only sees identifiers referenced directly in the
+    // expression, not inside a called function's body — a plain function
+    // closing over `occurrences` would silently stop updating callers
+    // whenever `occurrences` changes without some *other* dependency (like
+    // `cursor`) also happening to change. Declaring it with `$:` makes the
+    // function itself a tracked dependency wherever it's called.
+    $: occurrencesForDay = date =>
+        occurrences
+            .filter(o => isSameDay(new Date(o.start), date))
+            .sort((a, b) => new Date(a.start) - new Date(b.start));
     $: selectedDayOccurrences = selectedCell ? occurrencesForDay(selectedCell.date) : [];
 </script>
 

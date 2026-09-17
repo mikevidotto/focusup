@@ -54,6 +54,14 @@ export function isSameDay(a, b) {
     return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
+export function startOfDay(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+export function endOfDay(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+}
+
 // Moves the day cursor by one cell in the given direction. left/right/down
 // clamp at the grid's edges (no wrap), same as moveSelection in
 // keyboardGrid.js. up returns null instead of clamping when already in the
