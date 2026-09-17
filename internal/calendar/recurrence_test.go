@@ -233,6 +233,71 @@ func TestOccurrences_NeverReturnsNilWhenEmpty(t *testing.T) {
 	}
 }
 
+func TestOccurrences_Completions(t *testing.T) {
+	e := Event{
+		Start:      dt(2026, 1, 5, 9, 0), // Monday
+		End:        dt(2026, 1, 5, 9, 30),
+		Recurrence: &RecurrenceRule{Frequency: FrequencyWeekly, Interval: 1},
+		Completions: []Completion{
+			{OccurrenceDate: dt(2026, 1, 12, 0, 0), CompletedAt: dt(2026, 1, 12, 9, 15)},
+		},
+	}
+
+	occs := Occurrences(e, dt(2026, 1, 1, 0, 0), dt(2026, 1, 19, 23, 59))
+	if len(occs) != 3 {
+		t.Fatalf("got %d occurrences, want 3", len(occs))
+	}
+
+	want := map[string]bool{
+		occs[0].Start.String(): false, // Jan 5
+		occs[1].Start.String(): true,  // Jan 12 — completed
+		occs[2].Start.String(): false, // Jan 19
+	}
+
+	for _, occ := range occs {
+		if occ.Done != want[occ.Start.String()] {
+			t.Errorf("occurrence %v: Done = %v, want %v", occ.Start, occ.Done, want[occ.Start.String()])
+		}
+	}
+}
+
+// A Completion is matched against an occurrence's raw (pre-exception) date,
+// so it still applies after that occurrence gets rescheduled — the same
+// stable identity Exception itself is matched against.
+func TestOccurrences_CompletionSurvivesReschedule(t *testing.T) {
+	e := Event{
+		Start:      dt(2026, 1, 5, 9, 0),
+		End:        dt(2026, 1, 5, 9, 30),
+		Recurrence: &RecurrenceRule{Frequency: FrequencyWeekly, Interval: 1},
+		Exceptions: []Exception{
+			{
+				OriginalDate: dt(2026, 1, 12, 0, 0),
+				Type:         ExceptionReschedule,
+				NewStart:     ptr(dt(2026, 1, 14, 15, 0)),
+			},
+		},
+		Completions: []Completion{
+			{OccurrenceDate: dt(2026, 1, 12, 0, 0), CompletedAt: dt(2026, 1, 12, 9, 15)},
+		},
+	}
+
+	occs := Occurrences(e, dt(2026, 1, 1, 0, 0), dt(2026, 1, 19, 23, 59))
+
+	var rescheduled *Occurrence
+	for i := range occs {
+		if occs[i].Start.Equal(dt(2026, 1, 14, 15, 0)) {
+			rescheduled = &occs[i]
+		}
+	}
+
+	if rescheduled == nil {
+		t.Fatalf("did not find the rescheduled occurrence in %v", occurrenceStarts(occs))
+	}
+	if !rescheduled.Done {
+		t.Error("rescheduled occurrence lost its completion, want Done = true")
+	}
+}
+
 func TestOccurrences_RescheduleKeepsDurationWhenNewEndOmitted(t *testing.T) {
 	e := Event{
 		Start:      dt(2026, 1, 5, 9, 0),

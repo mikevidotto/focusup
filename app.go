@@ -98,6 +98,10 @@ func (a *App) DeleteEvent(id string) error {
 	return a.calendar.Delete(id)
 }
 
+func (a *App) ToggleEventCompletion(eventID string, occurrenceDate time.Time) (calendar.Event, error) {
+	return a.calendar.ToggleCompletion(eventID, occurrenceDate)
+}
+
 func (a *App) GetDueReminders() []calendar.DueReminder {
 	return a.calendar.DueReminders(time.Now())
 }

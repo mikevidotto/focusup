@@ -104,6 +104,47 @@ func (s *Service) AddReminder(eventID string, leadTime time.Duration) (Event, er
 	return Event{}, ErrNotFound
 }
 
+// ToggleCompletion marks the occurrence identified by (eventID,
+// occurrenceDate) done if it wasn't, or un-marks it if it was — mirrors
+// tasks.Service.Toggle's naming. occurrenceDate is matched by calendar date
+// against each Completion, the same way Exception.OriginalDate is.
+func (s *Service) ToggleCompletion(eventID string, occurrenceDate time.Time) (Event, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for i := range s.events {
+		if s.events[i].ID != eventID {
+			continue
+		}
+
+		completions := s.events[i].Completions
+		matchIndex := -1
+		for j, c := range completions {
+			if sameCalendarDate(c.OccurrenceDate, occurrenceDate) {
+				matchIndex = j
+				break
+			}
+		}
+
+		if matchIndex >= 0 {
+			s.events[i].Completions = append(completions[:matchIndex], completions[matchIndex+1:]...)
+		} else {
+			s.events[i].Completions = append(completions, Completion{
+				OccurrenceDate: occurrenceDate,
+				CompletedAt:    time.Now(),
+			})
+		}
+
+		if err := save(s.path, s.events); err != nil {
+			return Event{}, err
+		}
+
+		return s.events[i], nil
+	}
+
+	return Event{}, ErrNotFound
+}
+
 // ListOccurrences expands every stored event into its occurrences within
 // [rangeStart, rangeEnd], sorted by start time. This is the recurrence-aware
 // read path for the widget and the month page — the frontend should never

@@ -742,6 +742,11 @@ kbd {
     text-align: left;
 }
 
+.calendar-widget-item.done {
+    color: var(--text-faint);
+    text-decoration: line-through;
+}
+
 .calendar-widget-time {
     flex-shrink: 0;
 
@@ -851,6 +856,10 @@ kbd {
 
 .calendar-widget-dot.important {
     background: var(--accent);
+}
+
+.calendar-widget-dot.done {
+    background: var(--success);
 }
 
 /* TASKS PAGE */
@@ -973,16 +982,28 @@ kbd {
 }
 
 .calendar-day-event {
+    width: 100%;
     overflow: hidden;
 
     padding: 1px 4px;
 
+    border: 0;
     background: var(--accent-soft);
 
     color: var(--text);
+    font-family: inherit;
     font-size: 10px;
+    text-align: left;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    cursor: pointer;
+}
+
+.calendar-day-event.done {
+    background: var(--surface-hover);
+    color: var(--text-faint);
+    text-decoration: line-through;
 }
 
 .calendar-day-more {
@@ -1024,6 +1045,27 @@ kbd {
     gap: 10px;
 
     font-size: 13px;
+}
+
+.calendar-detail-item.done {
+    color: var(--text-faint);
+    text-decoration: line-through;
+}
+
+.calendar-detail-check {
+    flex-shrink: 0;
+
+    padding: 0;
+
+    border: 0;
+    background: transparent;
+
+    color: var(--accent);
+    font-size: 14px;
+    line-height: 1;
+    text-decoration: none;
+
+    cursor: pointer;
 }
 
 .calendar-detail-time {

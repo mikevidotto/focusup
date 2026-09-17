@@ -25,4 +25,6 @@ export function ListEvents():Promise<Array<calendar.Event>>;
 
 export function ListTasks():Promise<Array<tasks.Task>>;
 
+export function ToggleEventCompletion(arg1:string,arg2:time.Time):Promise<calendar.Event>;
+
 export function ToggleTask(arg1:string):Promise<tasks.Task>;

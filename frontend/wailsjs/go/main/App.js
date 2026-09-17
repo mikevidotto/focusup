@@ -42,6 +42,10 @@ export function ListTasks() {
   return window['go']['main']['App']['ListTasks']();
 }
 
+export function ToggleEventCompletion(arg1, arg2) {
+  return window['go']['main']['App']['ToggleEventCompletion'](arg1, arg2);
+}
+
 export function ToggleTask(arg1) {
   return window['go']['main']['App']['ToggleTask'](arg1);
 }

@@ -130,6 +130,17 @@ func findException(exceptions []Exception, rawDate time.Time) (Exception, bool) 
 	return Exception{}, false
 }
 
+// isCompleted reports whether a Completion matches the given raw occurrence
+// date (by calendar date, not exact time).
+func isCompleted(completions []Completion, rawDate time.Time) bool {
+	for _, c := range completions {
+		if sameCalendarDate(c.OccurrenceDate, rawDate) {
+			return true
+		}
+	}
+	return false
+}
+
 // Occurrences expands an Event into concrete Occurrences whose (possibly
 // exception-adjusted) Start falls within [rangeStart, rangeEnd], inclusive.
 //
@@ -152,6 +163,7 @@ func Occurrences(e Event, rangeStart, rangeEnd time.Time) []Occurrence {
 			Start:         raw,
 			End:           raw.Add(duration),
 			OriginalStart: raw,
+			Done:          isCompleted(e.Completions, raw),
 		}
 
 		if ex, ok := findException(e.Exceptions, raw); ok {

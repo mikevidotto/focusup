@@ -20,11 +20,12 @@ type Event struct {
 	AllDay      bool      `json:"allDay"`
 	// Important marks an event for emphasis in compact views (e.g. a red dot
 	// on a month grid) — a birthday vs. a routine garbage-day reminder.
-	Important  bool            `json:"important"`
-	Recurrence *RecurrenceRule `json:"recurrence,omitempty"`
-	Exceptions []Exception     `json:"exceptions,omitempty"`
-	Reminders  []Reminder      `json:"reminders,omitempty"`
-	CreatedAt  time.Time       `json:"createdAt"`
+	Important   bool            `json:"important"`
+	Recurrence  *RecurrenceRule `json:"recurrence,omitempty"`
+	Exceptions  []Exception     `json:"exceptions,omitempty"`
+	Reminders   []Reminder      `json:"reminders,omitempty"`
+	Completions []Completion    `json:"completions,omitempty"`
+	CreatedAt   time.Time       `json:"createdAt"`
 }
 
 // ExceptionType identifies how an Exception overrides a single occurrence.
@@ -53,6 +54,15 @@ type Exception struct {
 	NewEnd *time.Time `json:"newEnd,omitempty"`
 }
 
+// Completion marks a specific occurrence of an event as done — e.g. "took
+// the garbage out this Thursday". Matched to an occurrence the same way
+// Exception is: by calendar date against the occurrence's raw, un-rescheduled
+// date, so it still applies even if that occurrence was later rescheduled.
+type Completion struct {
+	OccurrenceDate time.Time `json:"occurrenceDate"`
+	CompletedAt    time.Time `json:"completedAt"`
+}
+
 // Occurrence is one concrete instance of an Event, after recurrence
 // expansion and any Exception has been applied.
 type Occurrence struct {
@@ -60,9 +70,10 @@ type Occurrence struct {
 	End   time.Time `json:"end"`
 	// OriginalStart is the raw, un-overridden occurrence date the recurrence
 	// rule produced for this slot, even if an Exception rescheduled it. It's
-	// a stable key for matching an occurrence back to its Exception (or for
-	// creating a new one).
+	// a stable key for matching an occurrence back to its Exception or
+	// Completion (or for creating a new one).
 	OriginalStart time.Time `json:"originalStart"`
+	Done          bool      `json:"done"`
 }
 
 // OccurrenceView pairs an expanded Occurrence with the Event it belongs to.

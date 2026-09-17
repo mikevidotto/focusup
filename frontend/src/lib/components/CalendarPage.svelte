@@ -4,7 +4,7 @@
     import { activeWidgetKeyHandler, mode } from "../stores/keyboard.js";
     import { buildMonthGrid, isSameDay, moveDayCursor, WEEKDAY_LABELS } from "../calendarGrid.js";
     import { formatOccurrenceTime, occurrenceKey } from "../calendarDisplay.js";
-    import { ListCalendarOccurrences } from "../../../wailsjs/go/main/App.js";
+    import { ListCalendarOccurrences, ToggleEventCompletion } from "../../../wailsjs/go/main/App.js";
 
     const today = new Date();
 
@@ -48,6 +48,15 @@
         cursor = Math.max(0, cells.findIndex(c => c.inCurrentMonth));
 
         await fetchOccurrences();
+    }
+
+    async function toggleCompletion(occ) {
+        try {
+            await ToggleEventCompletion(occ.eventId, occ.originalStart);
+            await fetchOccurrences();
+        } catch (e) {
+            error = String(e);
+        }
     }
 
     function occurrencesForDay(date) {
@@ -148,7 +157,17 @@
                 {#if dayOccurrences.length > 0}
                     <ul class="calendar-day-events">
                         {#each dayOccurrences.slice(0, 2) as occ (occurrenceKey(occ))}
-                            <li class="calendar-day-event" title={occ.title}>{occ.title}</li>
+                            <li>
+                                <button
+                                    type="button"
+                                    class="calendar-day-event"
+                                    class:done={occ.done}
+                                    title={occ.title}
+                                    on:click={() => toggleCompletion(occ)}
+                                >
+                                    {occ.done ? "✓ " : ""}{occ.title}
+                                </button>
+                            </li>
                         {/each}
 
                         {#if dayOccurrences.length > 2}
@@ -172,7 +191,15 @@
         {:else}
             <ul class="calendar-detail-list">
                 {#each selectedDayOccurrences as occ (occurrenceKey(occ))}
-                    <li class="calendar-detail-item">
+                    <li class="calendar-detail-item" class:done={occ.done}>
+                        <button
+                            type="button"
+                            class="calendar-detail-check"
+                            aria-label={occ.done ? "Mark not done" : "Mark done"}
+                            on:click={() => toggleCompletion(occ)}
+                        >
+                            {occ.done ? "☑" : "☐"}
+                        </button>
                         <span class="calendar-detail-time">{formatOccurrenceTime(occ)}</span>
                         <span class="calendar-detail-event-title">{occ.title}</span>
                     </li>

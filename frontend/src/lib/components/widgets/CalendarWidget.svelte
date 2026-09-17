@@ -4,7 +4,7 @@
     import { activeWidgetKeyHandler } from "../../stores/keyboard.js";
     import { buildWeekGrid, buildMonthGrid, isSameDay, WEEKDAY_LABELS } from "../../calendarGrid.js";
     import { formatOccurrenceTime, occurrenceKey } from "../../calendarDisplay.js";
-    import { ListCalendarOccurrences } from "../../../../wailsjs/go/main/App.js";
+    import { ListCalendarOccurrences, ToggleEventCompletion } from "../../../../wailsjs/go/main/App.js";
 
     export let focused = false;
 
@@ -54,16 +54,29 @@
         }
     }
 
+    async function toggleCompletion(occ) {
+        try {
+            await ToggleEventCompletion(occ.eventId, occ.originalStart);
+            await fetchOccurrences();
+        } catch (e) {
+            error = String(e);
+        }
+    }
+
     function occurrencesForDay(date) {
         return occurrences.filter(o => isSameDay(new Date(o.start), date));
     }
 
-    // null = no events that day, "normal" = events but none important,
-    // "important" = at least one important event that day.
+    // null = no events that day, "done" = every event that day is done,
+    // "important" = not every event is done and at least one is important,
+    // "normal" = events but none done/important.
     function dayIndicator(date) {
         const dayOccs = occurrencesForDay(date);
         if (dayOccs.length === 0) {
             return null;
+        }
+        if (dayOccs.every(o => o.done)) {
+            return "done";
         }
         return dayOccs.some(o => o.important) ? "important" : "normal";
     }
@@ -128,7 +141,15 @@
             {:else}
                 <ul class="calendar-widget-list">
                     {#each todayOccurrences as occ (occurrenceKey(occ))}
-                        <li class="calendar-widget-item">
+                        <li class="calendar-widget-item" class:done={occ.done}>
+                            <button
+                                type="button"
+                                class="calendar-detail-check"
+                                aria-label={occ.done ? "Mark not done" : "Mark done"}
+                                on:click={() => toggleCompletion(occ)}
+                            >
+                                {occ.done ? "☑" : "☐"}
+                            </button>
                             <span class="calendar-widget-time">{formatOccurrenceTime(occ)}</span>
                             <span class="calendar-widget-event-title">{occ.title}</span>
                         </li>
@@ -146,6 +167,7 @@
                             class="calendar-widget-dot"
                             class:visible={indicator !== null}
                             class:important={indicator === "important"}
+                            class:done={indicator === "done"}
                         ></span>
                     </div>
                 {/each}
@@ -168,6 +190,7 @@
                             class="calendar-widget-dot"
                             class:visible={indicator !== null}
                             class:important={indicator === "important"}
+                            class:done={indicator === "done"}
                         ></span>
                     </div>
                 {/each}
