@@ -19,7 +19,7 @@ export const widgets = [
         id: "calendar",
         title: "Calendar",
         shortcut: "2",
-        size: "medium",
+        size: "tall",
         row: 0,
         col: 4,
         component: CalendarWidget,

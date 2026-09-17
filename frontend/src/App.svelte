@@ -85,45 +85,53 @@
     }
 
     // Reached only when currentMode === "tabs" (i.e. not locked into a
-    // dashboard widget or grid). Handles the always-available tab-bar keys;
-    // anything else (j/k/enter/a/x, etc.) falls through to whichever page
-    // has registered activeWidgetKeyHandler (e.g. the Tasks page), or is a
-    // no-op if nothing has.
+    // grid or a dashboard widget). Handles the always-available tab-bar
+    // keys; anything else (j/k/enter/a/x, etc.) falls through to whichever
+    // page has registered activeWidgetKeyHandler (e.g. the Tasks page), or
+    // is a no-op if nothing has.
     //
-    // h/l are tab-switching by default, but the Calendar page claims them
-    // for its own left/right day-grid movement (it has a genuine 2D grid,
-    // unlike Tasks) — same escape hatch the "j" case below already uses for
-    // the dashboard tab.
+    // h/l always cycle tabs here. Pages with their own 2D grid (currently
+    // just Calendar) opt into the same tabs<->grid scheme the dashboard
+    // uses: "j" hands off to mode "grid" (their own handler then owns
+    // h/j/k/l — see handleKeyboard below), and until that happens, "k" is a
+    // no-op rather than leaking into the page's handler (the dashboard
+    // doesn't have this leak since nothing is registered pre-entry; a full
+    // page's handler is always registered, so it needs an explicit gate).
     function handleTabsAndPageKey(event) {
         switch (event.key) {
             case "h":
-                if (activeTab === "calendar") {
-                    break;
-                }
                 moveTab(-1);
                 return;
 
             case "l":
-                if (activeTab === "calendar") {
-                    break;
-                }
                 moveTab(1);
                 return;
 
             case "j": {
-                if (activeTab !== "dashboard") {
-                    break;
+                if (activeTab === "dashboard") {
+                    const first = firstWidget(widgets);
+
+                    if (first) {
+                        mode.set("grid");
+                        selectedWidgetId.set(first.id);
+                    }
+
+                    return;
                 }
 
-                const first = firstWidget(widgets);
-
-                if (first) {
-                    mode.set("dashboard");
-                    selectedWidgetId.set(first.id);
+                if (activeTab === "calendar") {
+                    mode.set("grid");
+                    return;
                 }
 
-                return;
+                break;
             }
+
+            case "k":
+                if (activeTab === "calendar") {
+                    return;
+                }
+                break;
 
             case "?":
                 console.log("Open keyboard help");
@@ -163,7 +171,7 @@
         if (currentMode === "widget") {
             if (event.key === "q") {
                 event.preventDefault();
-                mode.set("dashboard");
+                mode.set("grid");
                 return;
             }
 
@@ -171,8 +179,12 @@
             return;
         }
 
-        if (currentMode === "dashboard") {
-            handleDashboardKey(event);
+        if (currentMode === "grid") {
+            if (activeTab === "dashboard") {
+                handleDashboardKey(event);
+            } else {
+                get(activeWidgetKeyHandler)?.(event);
+            }
             return;
         }
 

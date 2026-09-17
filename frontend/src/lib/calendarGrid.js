@@ -54,9 +54,11 @@ export function isSameDay(a, b) {
     return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-// Moves the day cursor by one cell in the given direction, clamped at the
-// grid's edges (no wrap) — same clamp behavior as moveSelection in
-// keyboardGrid.js. left/right move one cell; up/down move one row (±7).
+// Moves the day cursor by one cell in the given direction. left/right/down
+// clamp at the grid's edges (no wrap), same as moveSelection in
+// keyboardGrid.js. up returns null instead of clamping when already in the
+// top row — same signal moveSelection uses to tell the caller to hand focus
+// back to the tab bar.
 export function moveDayCursor(cells, currentIndex, direction) {
     switch (direction) {
         case "left":
@@ -65,7 +67,7 @@ export function moveDayCursor(cells, currentIndex, direction) {
             return Math.min(currentIndex + 1, cells.length - 1);
         case "up": {
             const next = currentIndex - 7;
-            return next >= 0 ? next : currentIndex;
+            return next >= 0 ? next : null;
         }
         case "down": {
             const next = currentIndex + 7;

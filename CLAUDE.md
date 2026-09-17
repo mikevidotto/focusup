@@ -109,8 +109,8 @@ Follow `internal/tasks/` exactly:
 **Frontend — the three-mode keyboard state machine:**
 `stores/keyboard.js` defines `mode` as one of:
 - `"tabs"` — top-level tab bar owns input (h/l cycle tabs, digit keys jump tabs)
-- `"dashboard"` — grid navigation across widget slots (h/j/k/l move `selectedWidgetId` via `keyboardGrid.js`)
-- `"widget"` — input is locked to whichever widget is focused; that widget owns `activeWidgetKeyHandler`
+- `"grid"` — the active tab's own 2D grid owns input. For the dashboard tab this is the widget grid (h/j/k/l move `selectedWidgetId` via `keyboardGrid.js`); a full page can opt into the same mode for its own grid (see `CalendarPage.svelte` below) — the mode name is intentionally page-agnostic, not `"dashboard"`
+- `"widget"` — input is locked to whichever dashboard widget is focused; that widget owns `activeWidgetKeyHandler` until `q` returns to `"grid"`
 
 Any new widget must, like `TodoWidget.svelte`:
 - Accept a `focused` prop from `Dashboard.svelte`
@@ -118,12 +118,14 @@ Any new widget must, like `TodoWidget.svelte`:
 - Never listen to `window` keydown directly — `App.svelte` is the single global listener and dispatches based on `mode`
 
 **Frontend — widget registration:**
-New dashboard widgets are added to the `widgets` array in `lib/widgets.js` with `id`, `title`, `shortcut`, `size` (`tall`/`medium`/etc., maps to a CSS grid span), and explicit `row`/`col` (logical grid position used by `keyboardGrid.js` for spatial nav — must match the actual CSS grid placement or navigation will feel wrong). There are currently two open slots (`widget-2`, `widget-3`) with `component: null` — Calendar is filling one of these (see Decisions Made).
+New dashboard widgets are added to the `widgets` array in `lib/widgets.js` with `id`, `title`, `shortcut`, `size` (`tall`/`medium`/etc., maps to a CSS grid span), and explicit `row`/`col` (logical grid position used by `keyboardGrid.js` for spatial nav — must match the actual CSS grid placement or navigation will feel wrong). `widget-3` (`col: 8`) is the one remaining open slot with `component: null`; `todo` and `calendar` (both `size: "tall"`) fill the other two.
 
 **Full pages vs. widgets:**
 Some features (Tasks, now Calendar) have both a compact dashboard widget AND a dedicated full page reached via the tab bar (`navigation.js` + routing in `App.svelte`). A full page's key handler is set unconditionally in `onMount`/cleared in `onDestroy` (see `TasksPage.svelte`/`CalendarPage.svelte`) rather than gated by a `focused` prop like a dashboard widget — the page owns the whole view whenever its tab is active, there's no separate "focused" state to gate on.
 
-`App.svelte` reserves `h`/`l` globally for tab switching in `"tabs"` mode by default (which every full page runs in) — but a page can reclaim them if it has a genuine 2D grid, by special-casing its tab id in `handleTabsAndPageKey`'s `"h"`/`"l"` cases (an early `break` instead of `moveTab(...)`, the same escape hatch the `"j"` case already used for the dashboard tab). `CalendarPage.svelte` does this for real h/j/k/l = left/down/up/right day-grid movement; `TasksPage.svelte` doesn't need it since its list is 1D (j/k only). Follow this pattern for any future page that needs more than one axis of movement.
+A page with a genuine 2D grid can opt into the dashboard's own tabs↔grid scheme instead of owning its keys unconditionally like `TasksPage.svelte` does (1D lists don't need this — j/k is enough). `CalendarPage.svelte` is the current example: while `mode === "tabs"`, h/l cycle tabs as normal and `k` is a no-op (see the note on why it needs an explicit no-op, below) — pressing `j` (handled in `App.svelte`'s `handleTabsAndPageKey`, alongside the dashboard's own `"j"` case) sets `mode` to `"grid"`, at which point `App.svelte`'s `handleKeyboard` forwards h/j/k/l straight to the page's `activeWidgetKeyHandler` instead of `handleDashboardKey`. Moving `"up"` past the grid's top row (`calendarGrid.js`'s `moveDayCursor` returning `null`, mirroring `keyboardGrid.js`'s `moveSelection`) sets `mode` back to `"tabs"` — same exit shape as the dashboard grid.
+
+One wrinkle full pages have that dashboard widgets don't: a dashboard widget only registers `activeWidgetKeyHandler` once actually focused (`mode === "widget"`), so stray keys before that are simply no-ops. A full page registers its handler unconditionally in `onMount` (see above), so without an explicit guard `k` would leak straight into `CalendarPage`'s handler even before `j` "enters" the grid — `handleTabsAndPageKey`'s `"k"` case exists specifically to prevent that leak for pages using this scheme.
 
 ## Coding Conventions
 

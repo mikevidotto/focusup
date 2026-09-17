@@ -1,7 +1,7 @@
 <script>
     import { onMount, onDestroy } from "svelte";
 
-    import { activeWidgetKeyHandler } from "../stores/keyboard.js";
+    import { activeWidgetKeyHandler, mode } from "../stores/keyboard.js";
     import { buildMonthGrid, isSameDay, moveDayCursor, WEEKDAY_LABELS } from "../calendarGrid.js";
     import { formatOccurrenceTime, occurrenceKey } from "../calendarDisplay.js";
     import { ListCalendarOccurrences } from "../../../wailsjs/go/main/App.js";
@@ -73,10 +73,18 @@
                 cursor = moveDayCursor(cells, cursor, "down");
                 break;
 
-            case "k":
+            case "k": {
                 event.preventDefault();
-                cursor = moveDayCursor(cells, cursor, "up");
+                const next = moveDayCursor(cells, cursor, "up");
+
+                if (next === null) {
+                    mode.set("tabs");
+                } else {
+                    cursor = next;
+                }
+
                 break;
+            }
 
             case "[":
                 event.preventDefault();
