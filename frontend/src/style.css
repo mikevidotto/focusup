@@ -20,19 +20,19 @@ body {
     "Courier New", monospace;
 
     color: #dedbd3;
-    background: #090a08;
+    background: #07080a;
 
-    --bg: #090a08;
-    --surface: #0d0e0c;
-    --surface-hover: #121310;
-    --surface-selected: #151613;
+    --bg: #07080a;
+    --surface: #0a0b0f;
+    --surface-hover: #0d0f14;
+    --surface-selected: #101218;
 
-    --border: #21221d;
-    --border-soft: #181914;
+    --border: #181b25;
+    --border-soft: #11141a;
 
     --text: #dedbd3;
-    --text-soft: #8d8c85;
-    --text-faint: #5f605a;
+    --text-soft: #68759f;
+    --text-faint: #46506c;
 
     --accent: #b84e48;
     --accent-soft: #713631;
