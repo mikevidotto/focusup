@@ -1,5 +1,6 @@
 <script>
     import { onMount, onDestroy, tick } from "svelte";
+    import { get } from "svelte/store";
 
     import { activeWidgetKeyHandler, mode} from "../stores/keyboard.js";
     import { PRIORITY_META, nextPriority, splitTasks, formatCompletedDate } from "../taskDisplay.js";
@@ -136,12 +137,13 @@
 
             case "k":
                 event.preventDefault();
-                cursor = Math.max(cursor - 1, 0);
-
-                if (cursor === 0) {
+                if (cursor-1 < 0) {
                     mode.set("tabs");
+                    cursor = -1;
                 } else {
+                    cursor = Math.max(cursor - 1, 0);
                 }
+                
 
                 break;
 
@@ -186,7 +188,10 @@
             <ul class="todo-list">
                 {#each active as task (task.id)}
                     {@const index = rows.indexOf(task)}
-                    <li class="todo-item" class:cursor={!insertMode && index === cursor}>
+                    <li 
+                        class="todo-item" 
+                        class:cursor={!insertMode && index === cursor}
+                    >
                         <span class="todo-mark">☐</span>
                         <span class="todo-title">{task.title}</span>
                         <span

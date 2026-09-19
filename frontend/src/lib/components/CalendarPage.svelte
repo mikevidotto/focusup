@@ -88,6 +88,9 @@
 
                 break;
             }
+            case "Enter":
+                event.preventDefault();
+                break;
             case "[":
                 event.preventDefault();
                 changeMonth(-1);
@@ -175,6 +178,7 @@
                                 >
                                     {occ.done ? "✓ " : ""}{occ.title}
                                 </button>
+
                             </li>
                         {/each}
 

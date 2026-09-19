@@ -136,6 +136,9 @@
                 if (activeTab === "calendar") {
                     return;
                 }
+                if (activeTab === "tasks") {
+                    return;
+                }
                 break;
 
             case "?":
