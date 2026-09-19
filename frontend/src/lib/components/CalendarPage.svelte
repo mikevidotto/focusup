@@ -88,7 +88,6 @@
 
                 break;
             }
-
             case "[":
                 event.preventDefault();
                 changeMonth(-1);
@@ -129,8 +128,12 @@
     $: selectedDayOccurrences = selectedCell ? occurrencesForDay(selectedCell.date) : [];
 </script>
 
-<div class="page-placeholder calendar-page">
+<div class="page-placeholder calendar-page" style="margin-top:0">
+
+    <div class="calendar-page-left">
+    <!--
     <span class="eyebrow">FOCUSUP / CALENDAR</span>
+    -->
 
     <div class="tasks-heading-row">
         <h1>{monthLabel}</h1>
@@ -183,7 +186,10 @@
             </div>
         {/each}
     </div>
+    </div>
 
+
+    <div class="calendar-page-right">
     <div class="calendar-detail-panel">
         <div class="calendar-detail-title">
             {selectedCell
@@ -216,4 +222,5 @@
     {#if error}
         <p class="todo-error">{error}</p>
     {/if}
+    </div>
 </div>

@@ -1,7 +1,7 @@
 <script>
     import { onMount, onDestroy, tick } from "svelte";
 
-    import { activeWidgetKeyHandler } from "../stores/keyboard.js";
+    import { activeWidgetKeyHandler, mode} from "../stores/keyboard.js";
     import { PRIORITY_META, nextPriority, splitTasks, formatCompletedDate } from "../taskDisplay.js";
     import {
         ListTasks,
@@ -137,6 +137,12 @@
             case "k":
                 event.preventDefault();
                 cursor = Math.max(cursor - 1, 0);
+
+                if (cursor === 0) {
+                    mode.set("tabs");
+                } else {
+                }
+
                 break;
 
             case "Enter":

@@ -25,10 +25,12 @@
 
 <div class="dashboard">
     <div class="dashboard-heading">
+        <!--
         <div>
             <span class="eyebrow">FOCUSUP / DASHBOARD</span>
             <h1>{greeting}</h1>
         </div>
+        -->
 
         <div class="dashboard-hint">
             <kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd>

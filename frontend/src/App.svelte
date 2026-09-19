@@ -124,6 +124,11 @@
                     return;
                 }
 
+                if (activeTab === "tasks") {
+                    mode.set("grid");
+                    return;
+                }
+
                 break;
             }
 
