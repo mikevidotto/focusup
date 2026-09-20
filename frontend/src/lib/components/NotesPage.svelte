@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 </script>
 
 <div class="page-placeholder notes-page" style="margin-top:0">

@@ -189,7 +189,6 @@
                         class="todo-item"
                         class:cursor={!insertMode && index === cursor}
                     >
-                    <li class="todo-item" class:cursor={!insertMode && index === cursor}>
                         <span class="todo-mark">☐</span>
                         <span class="todo-title">{task.title}</span>
                         <span

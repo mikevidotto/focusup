@@ -125,11 +125,19 @@
                     return;
                 }
 
+                if (activeTab === "notes") {
+                    mode.set("grid");
+                    return;
+                }
+
                 break;
             }
 
             case "k":
                 if (activeTab === "calendar") {
+                    return;
+                }
+                if (activeTab == "notes") {
                     return;
                 }
                 break;
@@ -217,8 +225,6 @@
             <TasksPage />
         {:else if activeTab === "calendar"}
             <CalendarPage />
-        {:else if activeTab === "notes"}
-            <NotesPage />
         {:else}
             <div class="page-placeholder">
                 <span class="eyebrow">

@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 //import {svelte} from '@sveltejs/vite-plugin-svelte'
 
 
@@ -34,7 +34,7 @@ import { onMount, onDestroy } from "svelte";
         }
     }
 
-    async function changeMonth(delta: number) {
+    async function changeMonth(delta) {
         let month = viewedMonth + delta;
         let year = viewedYear;
 
