@@ -1,5 +1,8 @@
-<script>
-    import { onMount, onDestroy } from "svelte";
+<script lang="ts">
+//import {svelte} from '@sveltejs/vite-plugin-svelte'
+
+
+import { onMount, onDestroy } from "svelte";
 
     import { activeWidgetKeyHandler, mode } from "../stores/keyboard.js";
     import { buildMonthGrid, isSameDay, moveDayCursor, WEEKDAY_LABELS } from "../calendarGrid.js";
@@ -15,6 +18,7 @@
     let occurrences = [];
     let loading = true;
     let error = null;
+    let eventMode = false;
 
     async function fetchOccurrences() {
         loading = true;
@@ -30,7 +34,7 @@
         }
     }
 
-    async function changeMonth(delta) {
+    async function changeMonth(delta: number) {
         let month = viewedMonth + delta;
         let year = viewedYear;
 
@@ -176,7 +180,7 @@
                                     title={occ.title}
                                     on:click={() => toggleCompletion(occ)}
                                 >
-                                    {occ.done ? "✓ " : ""}{occ.title}
+                                    {occ.done ? "[✓ ]" : "[ ] "}
                                 </button>
 
                             </li>
@@ -191,7 +195,6 @@
         {/each}
     </div>
     </div>
-
 
     <div class="calendar-page-right">
     <div class="calendar-detail-panel">

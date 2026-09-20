@@ -9,7 +9,7 @@ a personal desktop GUI application to stay focused and organized.
 ### Widgets:
 [ ] Calendar
 
-[ ] Tasks
+[x] Tasks
 
 [ ] Job Applications
 

@@ -7,6 +7,7 @@
     import Dashboard from "./lib/components/Dashboard.svelte";
     import TasksPage from "./lib/components/TasksPage.svelte";
     import CalendarPage from "./lib/components/CalendarPage.svelte";
+    import NotesPage from "./lib/components/NotesPage.svelte";
     import ReminderPopup from "./lib/components/ReminderPopup.svelte";
 
     import { tabs } from "./lib/navigation.js";
@@ -124,19 +125,11 @@
                     return;
                 }
 
-                if (activeTab === "tasks") {
-                    mode.set("grid");
-                    return;
-                }
-
                 break;
             }
 
             case "k":
                 if (activeTab === "calendar") {
-                    return;
-                }
-                if (activeTab === "tasks") {
                     return;
                 }
                 break;
@@ -224,6 +217,8 @@
             <TasksPage />
         {:else if activeTab === "calendar"}
             <CalendarPage />
+        {:else if activeTab === "notes"}
+            <NotesPage />
         {:else}
             <div class="page-placeholder">
                 <span class="eyebrow">

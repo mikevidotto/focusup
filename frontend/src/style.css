@@ -1002,7 +1002,11 @@ kbd {
 }
 
 .calendar-day-cell {
-    min-height: 80px;
+    min-height: 90px;
+    min-width: 120px;
+    max-height: 90px;
+    max-width: 120px;
+
     padding: 6px;
 
     display: flex;
@@ -1231,7 +1235,6 @@ kbd {
 
 .page-placeholder {
     max-width: 98%;
-    margin: 80px auto;
 
     color: var(--text-soft);
 }

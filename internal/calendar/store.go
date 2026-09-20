@@ -14,7 +14,7 @@ func dataFilePath() (string, error) {
 
 	appDir := filepath.Join(dir, "focusup")
 	if err := os.MkdirAll(appDir, 0o755); err != nil {
-		return "", err
+		return "error creating config directory", err
 	}
 
 	return filepath.Join(appDir, "calendar.json"), nil

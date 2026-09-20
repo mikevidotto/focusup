@@ -1,14 +1,20 @@
 <script>
+
     import { onMount, onDestroy, tick } from "svelte";
     import { get } from "svelte/store";
 
-    import { activeWidgetKeyHandler, mode} from "../stores/keyboard.js";
-    import { PRIORITY_META, nextPriority, splitTasks, formatCompletedDate } from "../taskDisplay.js";
+    import { activeWidgetKeyHandler } from "../stores/keyboard.js";
+    import {
+        PRIORITY_META,
+        nextPriority,
+        splitTasks,
+        formatCompletedDate,
+    } from "../taskDisplay.js";
     import {
         ListTasks,
         AddTask,
         ToggleTask,
-        DeleteTask
+        DeleteTask,
     } from "../../../wailsjs/go/main/App.js";
 
     let tasks = [];
@@ -48,7 +54,7 @@
 
         try {
             const updated = await ToggleTask(task.id);
-            tasks = tasks.map(t => (t.id === updated.id ? updated : t));
+            tasks = tasks.map((t) => (t.id === updated.id ? updated : t));
         } catch (e) {
             error = String(e);
         }
@@ -64,7 +70,7 @@
         try {
             await DeleteTask(task.id);
 
-            const updated = tasks.filter(t => t.id !== task.id);
+            const updated = tasks.filter((t) => t.id !== task.id);
             tasks = updated;
             cursor = Math.max(0, Math.min(cursor, updated.length - 1));
         } catch (e) {
@@ -103,7 +109,6 @@
                     error = String(e);
                 }
             }
-
             exitInsertMode();
         } else if (event.key === "Escape") {
             event.preventDefault();
@@ -137,14 +142,7 @@
 
             case "k":
                 event.preventDefault();
-                if (cursor-1 < 0) {
-                    mode.set("tabs");
-                    cursor = -1;
-                } else {
-                    cursor = Math.max(cursor - 1, 0);
-                }
-                
-
+                cursor = Math.max(cursor - 1, 0);
                 break;
 
             case "Enter":
@@ -166,7 +164,9 @@
 
     <div class="tasks-heading-row">
         <h1>Tasks</h1>
-        <span class="todo-header-count">{active.length} active • {tasks.length} total</span>
+        <span class="todo-header-count"
+            >{active.length} active • {tasks.length} total</span
+        >
     </div>
 
     <div class="tasks-hint">
@@ -188,8 +188,8 @@
             <ul class="todo-list">
                 {#each active as task (task.id)}
                     {@const index = rows.indexOf(task)}
-                    <li 
-                        class="todo-item" 
+                    <li
+                        class="todo-item"
                         class:cursor={!insertMode && index === cursor}
                     >
                         <span class="todo-mark">☐</span>
@@ -197,7 +197,8 @@
                         <span
                             class="todo-priority"
                             style="color: {PRIORITY_META[task.priority].color}"
-                            title="{PRIORITY_META[task.priority].label} priority"
+                            title="{PRIORITY_META[task.priority]
+                                .label} priority"
                         >
                             {PRIORITY_META[task.priority].icon}
                         </span>
@@ -211,10 +212,15 @@
                 <ul class="todo-list">
                     {#each completed as task (task.id)}
                         {@const index = rows.indexOf(task)}
-                        <li class="todo-item done" class:cursor={!insertMode && index === cursor}>
+                        <li
+                            class="todo-item done"
+                            class:cursor={!insertMode && index === cursor}
+                        >
                             <span class="todo-mark todo-mark-done">☑</span>
                             <span class="todo-title">{task.title}</span>
-                            <span class="todo-completed-date">{formatCompletedDate(task.completedAt)}</span>
+                            <span class="todo-completed-date"
+                                >{formatCompletedDate(task.completedAt)}</span
+                            >
                         </li>
                     {/each}
                 </ul>
@@ -241,7 +247,8 @@
                     on:mousedown|preventDefault={cyclePendingPriority}
                     title="Press Tab to cycle priority"
                 >
-                    {PRIORITY_META[pendingPriority].icon} {PRIORITY_META[pendingPriority].label}
+                    {PRIORITY_META[pendingPriority].icon}
+                    {PRIORITY_META[pendingPriority].label}
                 </button>
             {/if}
         </div>
