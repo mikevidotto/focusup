@@ -1,7 +1,6 @@
 <script>
 
     import { onMount, onDestroy, tick } from "svelte";
-    import { get } from "svelte/store";
 
     import { activeWidgetKeyHandler } from "../stores/keyboard.js";
     import {
@@ -143,6 +142,15 @@
             case "k":
                 event.preventDefault();
                 cursor = Math.max(cursor - 1, 0);
+<<<<<<< HEAD
+=======
+
+                if (cursor === 0) {
+                    mode.set("tabs");
+                } else {
+                }
+
+>>>>>>> parent of 9aae43e (nav modifications for switching between tab bar and tasks page)
                 break;
 
             case "Enter":
@@ -188,10 +196,14 @@
             <ul class="todo-list">
                 {#each active as task (task.id)}
                     {@const index = rows.indexOf(task)}
+<<<<<<< HEAD
                     <li
                         class="todo-item"
                         class:cursor={!insertMode && index === cursor}
                     >
+=======
+                    <li class="todo-item" class:cursor={!insertMode && index === cursor}>
+>>>>>>> parent of 9aae43e (nav modifications for switching between tab bar and tasks page)
                         <span class="todo-mark">☐</span>
                         <span class="todo-title">{task.title}</span>
                         <span

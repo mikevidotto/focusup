@@ -92,9 +92,6 @@ import { onMount, onDestroy } from "svelte";
 
                 break;
             }
-            case "Enter":
-                event.preventDefault();
-                break;
             case "[":
                 event.preventDefault();
                 changeMonth(-1);
@@ -182,7 +179,6 @@ import { onMount, onDestroy } from "svelte";
                                 >
                                     {occ.done ? "[✓ ]" : "[ ] "}
                                 </button>
-
                             </li>
                         {/each}
 
