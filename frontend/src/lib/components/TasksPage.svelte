@@ -1,4 +1,8 @@
 <script>
+<<<<<<< HEAD
+=======
+    import { onMount, onDestroy, tick } from "svelte";
+>>>>>>> parent of 9aae43e (nav modifications for switching between tab bar and tasks page)
 
     import { onMount, onDestroy, tick } from "svelte";
 
@@ -143,7 +147,15 @@
                 event.preventDefault();
                 cursor = Math.max(cursor - 1, 0);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+
+                if (cursor === 0) {
+                    mode.set("tabs");
+                } else {
+                }
+>>>>>>> parent of 9aae43e (nav modifications for switching between tab bar and tasks page)
 
                 if (cursor === 0) {
                     mode.set("tabs");
@@ -197,10 +209,14 @@
                 {#each active as task (task.id)}
                     {@const index = rows.indexOf(task)}
 <<<<<<< HEAD
+<<<<<<< HEAD
                     <li
                         class="todo-item"
                         class:cursor={!insertMode && index === cursor}
                     >
+=======
+                    <li class="todo-item" class:cursor={!insertMode && index === cursor}>
+>>>>>>> parent of 9aae43e (nav modifications for switching between tab bar and tasks page)
 =======
                     <li class="todo-item" class:cursor={!insertMode && index === cursor}>
 >>>>>>> parent of 9aae43e (nav modifications for switching between tab bar and tasks page)
