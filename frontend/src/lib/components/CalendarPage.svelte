@@ -1,24 +1,37 @@
 <script>
-//import {svelte} from '@sveltejs/vite-plugin-svelte'
+    //import {svelte} from '@sveltejs/vite-plugin-svelte'
 
-
-import { onMount, onDestroy } from "svelte";
+    import { onMount, onDestroy } from "svelte";
 
     import { activeWidgetKeyHandler, mode } from "../stores/keyboard.js";
-    import { buildMonthGrid, isSameDay, moveDayCursor, WEEKDAY_LABELS } from "../calendarGrid.js";
+    import {
+        buildMonthGrid,
+        isSameDay,
+        moveDayCursor,
+        WEEKDAY_LABELS,
+    } from "../calendarGrid.js";
     import { formatOccurrenceTime, occurrenceKey } from "../calendarDisplay.js";
-    import { ListCalendarOccurrences, ToggleEventCompletion } from "../../../wailsjs/go/main/App.js";
+    import {
+        ListCalendarOccurrences,
+        ToggleEventCompletion,
+    } from "../../../wailsjs/go/main/App.js";
 
     const today = new Date();
 
     let viewedYear = today.getFullYear();
     let viewedMonth = today.getMonth();
     let cells = buildMonthGrid(viewedYear, viewedMonth);
-    let cursor = Math.max(0, cells.findIndex(c => isSameDay(c.date, today)));
+    let cursor = Math.max(
+        0,
+        cells.findIndex((c) => isSameDay(c.date, today)),
+    );
+    let eventCursor = 0;
     let occurrences = [];
     let loading = true;
     let error = null;
-    let eventMode = false;
+    let listMode = false;
+    var selectedOcc;
+    let occEventId = "yo";
 
     async function fetchOccurrences() {
         loading = true;
@@ -49,7 +62,10 @@ import { onMount, onDestroy } from "svelte";
         viewedYear = year;
         viewedMonth = month;
         cells = buildMonthGrid(viewedYear, viewedMonth);
-        cursor = Math.max(0, cells.findIndex(c => c.inCurrentMonth));
+        cursor = Math.max(
+            0,
+            cells.findIndex((c) => c.inCurrentMonth),
+        );
 
         await fetchOccurrences();
     }
@@ -64,43 +80,69 @@ import { onMount, onDestroy } from "svelte";
     }
 
     function handleKey(event) {
-        switch (event.key) {
-            case "h":
-                event.preventDefault();
-                cursor = moveDayCursor(cells, cursor, "left");
-                break;
+        if (!listMode) {
+            switch (event.key) {
+                case "h":
+                    event.preventDefault();
+                    cursor = moveDayCursor(cells, cursor, "left");
+                    break;
 
-            case "l":
-                event.preventDefault();
-                cursor = moveDayCursor(cells, cursor, "right");
-                break;
+                case "l":
+                    event.preventDefault();
+                    cursor = moveDayCursor(cells, cursor, "right");
+                    break;
 
-            case "j":
-                event.preventDefault();
-                cursor = moveDayCursor(cells, cursor, "down");
-                break;
+                case "j":
+                    event.preventDefault();
+                    cursor = moveDayCursor(cells, cursor, "down");
+                    break;
 
-            case "k": {
-                event.preventDefault();
-                const next = moveDayCursor(cells, cursor, "up");
+                case "k": {
+                    event.preventDefault();
+                    const next = moveDayCursor(cells, cursor, "up");
 
-                if (next === null) {
-                    mode.set("tabs");
-                } else {
-                    cursor = next;
+                    if (next === null) {
+                        mode.set("tabs");
+                    } else {
+                        cursor = next;
+                    }
+
+                    break;
                 }
+                case "Enter":
+                    event.preventDefault();
+                    listMode = true;
+                    break;
+                case "[":
+                    event.preventDefault();
+                    changeMonth(-1);
+                    break;
 
-                break;
+                case "]":
+                    event.preventDefault();
+                    changeMonth(1);
+                    break;
             }
-            case "[":
-                event.preventDefault();
-                changeMonth(-1);
-                break;
+        } else {
+            switch (event.key) {
+                case "q":
+                    listMode = false;
+                    break;
 
-            case "]":
-                event.preventDefault();
-                changeMonth(1);
-                break;
+                case "Enter":
+                    toggleCompletion(selectedDayOccurrences[eventCursor]);
+                    break;
+
+                case "k":
+                    if (eventCursor === 0) {
+                    } else {
+                        eventCursor = Math.min(cursor + 1, selectedDayOccurrences.length - 1);
+                    }
+                    break;
+                case "j":
+                    eventCursor = Math.min(cursor + 1, selectedDayOccurrences.length - 1);
+                    break;
+            }
         }
     }
 
@@ -113,10 +155,13 @@ import { onMount, onDestroy } from "svelte";
         activeWidgetKeyHandler.set(null);
     });
 
-    $: monthLabel = new Date(viewedYear, viewedMonth, 1).toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric"
-    });
+    $: monthLabel = new Date(viewedYear, viewedMonth, 1).toLocaleDateString(
+        "en-US",
+        {
+            month: "long",
+            year: "numeric",
+        },
+    );
     $: selectedCell = cells[cursor];
     // A reactive *function*, not a plain one: Svelte's dependency tracking
     // for `$:`/`{@const}` only sees identifiers referenced directly in the
@@ -125,105 +170,125 @@ import { onMount, onDestroy } from "svelte";
     // whenever `occurrences` changes without some *other* dependency (like
     // `cursor`) also happening to change. Declaring it with `$:` makes the
     // function itself a tracked dependency wherever it's called.
-    $: occurrencesForDay = date =>
+    $: occurrencesForDay = (date) =>
         occurrences
-            .filter(o => isSameDay(new Date(o.start), date))
+            .filter((o) => isSameDay(new Date(o.start), date))
             .sort((a, b) => new Date(a.start) - new Date(b.start));
-    $: selectedDayOccurrences = selectedCell ? occurrencesForDay(selectedCell.date) : [];
+    $: selectedDayOccurrences = selectedCell
+        ? occurrencesForDay(selectedCell.date)
+        : [];
 </script>
 
 <div class="page-placeholder calendar-page" style="margin-top:0">
-
     <div class="calendar-page-left">
-    <!--
+        <!--
     <span class="eyebrow">FOCUSUP / CALENDAR</span>
     -->
 
-    <div class="tasks-heading-row">
-        <h1>{monthLabel}</h1>
-        {#if loading}
-            <span class="todo-header-count">Loading…</span>
-        {/if}
-    </div>
+        <div class="tasks-heading-row">
+            <h1>{monthLabel}</h1>
+            {#if loading}
+                <span class="todo-header-count">Loading…</span>
+            {/if}
+        </div>
 
-    <div class="tasks-hint">
-        <kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd> move day
-        <kbd>[</kbd><kbd>]</kbd> change month
-    </div>
+        <div class="tasks-hint">
+            <kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd> move day
+            <kbd>[</kbd><kbd>]</kbd> change month
+        </div>
 
-    <div class="calendar-grid">
-        {#each WEEKDAY_LABELS as label}
-            <div class="calendar-weekday">{label}</div>
-        {/each}
+        <div class="calendar-grid">
+            {#each WEEKDAY_LABELS as label}
+                <div class="calendar-weekday">{label}</div>
+            {/each}
 
-        {#each cells as cell, index (cell.date.toISOString())}
-            {@const dayOccurrences = occurrencesForDay(cell.date)}
-            <div
-                class="calendar-day-cell"
-                class:dimmed={!cell.inCurrentMonth}
-                class:today={isSameDay(cell.date, today)}
-                class:cursor={index === cursor}
-            >
-                <span class="calendar-day-number">{cell.date.getDate()}</span>
+            {#each cells as cell, index (cell.date.toISOString())}
+                {@const dayOccurrences = occurrencesForDay(cell.date)}
+                <div
+                    class="calendar-day-cell"
+                    class:dimmed={!cell.inCurrentMonth}
+                    class:today={isSameDay(cell.date, today)}
+                    class:cursor={index === cursor}
+                >
+                    <span class="calendar-day-number"
+                        >{cell.date.getDate()}</span
+                    >
 
-                {#if dayOccurrences.length > 0}
-                    <ul class="calendar-day-events">
-                        {#each dayOccurrences.slice(0, 2) as occ (occurrenceKey(occ))}
-                            <li>
-                                <button
-                                    type="button"
-                                    class="calendar-day-event"
-                                    class:done={occ.done}
-                                    title={occ.title}
-                                    on:click={() => toggleCompletion(occ)}
-                                >
-                                    {occ.done ? "[✓ ]" : "[ ] "}
-                                </button>
-                            </li>
-                        {/each}
+                    {#if dayOccurrences.length > 0}
+                        <ul class="calendar-day-events">
+                            {#each dayOccurrences.slice(0, 2) as occ (occurrenceKey(occ))}
+                                <li>
+                                    <button
+                                        type="button"
+                                        class="calendar-day-event"
+                                        class:done={occ.done}
+                                        title={occ.title}
+                                    >
+                                        {occ.done ? "[✓ ]" : "[ ] "}
+                                    </button>
+                                </li>
+                            {/each}
 
-                        {#if dayOccurrences.length > 2}
-                            <li class="calendar-day-more">+{dayOccurrences.length - 2} more</li>
-                        {/if}
-                    </ul>
-                {/if}
-            </div>
-        {/each}
-    </div>
+                            {#if dayOccurrences.length > 2}
+                                <li class="calendar-day-more">
+                                    +{dayOccurrences.length - 2} more
+                                </li>
+                            {/if}
+                        </ul>
+                    {/if}
+                </div>
+            {/each}
+        </div>
     </div>
 
     <div class="calendar-page-right">
-    <div class="calendar-detail-panel">
         <div class="calendar-detail-title">
             {selectedCell
-                ? selectedCell.date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })
+                ? selectedCell.date.toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                  })
                 : ""}
         </div>
-
-        {#if selectedDayOccurrences.length === 0}
-            <p class="calendar-detail-empty">Nothing scheduled</p>
-        {:else}
-            <ul class="calendar-detail-list">
-                {#each selectedDayOccurrences as occ (occurrenceKey(occ))}
-                    <li class="calendar-detail-item" class:done={occ.done}>
-                        <button
-                            type="button"
-                            class="calendar-detail-check"
-                            aria-label={occ.done ? "Mark not done" : "Mark done"}
-                            on:click={() => toggleCompletion(occ)}
+        <div class="calendar-detail-panel" class:cursor={listMode === true}>
+            {#if selectedDayOccurrences.length === 0}
+                <p class="calendar-detail-empty">Nothing scheduled</p>
+            {:else}
+                <ul
+                    class="calendar-detail-list"
+                    class:cursor={listMode === true}
+                >
+                    {#each selectedDayOccurrences as occ, index (occurrenceKey(occ))}
+                        <li
+                            class="calendar-detail-item"
+                            class:done={occ.done}
+                            class:cursor={index === eventCursor &&
+                                listMode === true}
                         >
-                            {occ.done ? "☑" : "☐"}
-                        </button>
-                        <span class="calendar-detail-time">{formatOccurrenceTime(occ)}</span>
-                        <span class="calendar-detail-event-title">{occ.title}</span>
-                    </li>
-                {/each}
-            </ul>
-        {/if}
-    </div>
+                            <button
+                                type="button"
+                                class="calendar-detail-check"
+                                aria-label={occ.done
+                                    ? "Mark not done"
+                                    : "Mark done"}
+                            >
+                                {occ.done ? "☑" : "☐"}
+                            </button>
+                            <span class="calendar-detail-time"
+                                >{formatOccurrenceTime(occ)}</span
+                            >
+                            <span class="calendar-detail-event-title"
+                                >{occ.title}</span
+                            >
+                        </li>
+                    {/each}
+                </ul>
+            {/if}
+        </div>
 
-    {#if error}
-        <p class="todo-error">{error}</p>
-    {/if}
+        {#if error}
+            <p class="todo-error">{error}</p>
+        {/if}
     </div>
 </div>

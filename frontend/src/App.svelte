@@ -7,7 +7,7 @@
     import Dashboard from "./lib/components/Dashboard.svelte";
     import TasksPage from "./lib/components/TasksPage.svelte";
     import CalendarPage from "./lib/components/CalendarPage.svelte";
-    import NotesPage from "./lib/components/NotesPage.svelte";
+    //import NotesPage from "./lib/components/NotesPage.svelte";
     import ReminderPopup from "./lib/components/ReminderPopup.svelte";
 
     import { tabs } from "./lib/navigation.js";
