@@ -310,7 +310,7 @@
                                         class:done={occ.done}
                                         title={occ.title}
                                     >
-                                        {occ.done ? "[✓ ]" : "[ ] "}
+                                        {occ.done ? "[✓]" : "[ ]"}{occ.title}
                                     </button>
                                 </li>
                             {/each}
