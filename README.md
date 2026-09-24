@@ -1,12 +1,10 @@
 # focusup
 a personal desktop GUI application to stay focused and organized.
+<img width="2160" height="1350" alt="image" src="https://github.com/user-attachments/assets/6ba418d1-c859-41c0-9445-9efc1feaf50b" />
+<img width="2160" height="1350" alt="image" src="https://github.com/user-attachments/assets/14bb043b-8e4e-49ee-a719-4d1b0ded4eee" />
+<img width="2160" height="1350" alt="image" src="https://github.com/user-attachments/assets/c6db64b8-55d0-496d-8e0e-18990e85bc60" />
 
-#### TO DO
-
-[x] build a menu interface controllable with the keyboard.
-[x] build your first widget: "To Do List"
-
-### Widgets:
+### Widget Ideas:
 [ ] Calendar
 
 [x] Tasks
@@ -54,26 +52,5 @@ a personal desktop GUI application to stay focused and organized.
 [ ] Quick Notes
 
 [ ] Focus Timer
-
-#### Concept Image
-<img width="1536" height="1024" alt="c17798ba-ceaa-474c-9771-78c659fe0527" src="https://github.com/user-attachments/assets/b2f1fec4-1ea4-4f5c-bde3-8826075b1e51" />
-<img width="1536" height="1024" alt="84a1092c-5e07-48bb-ab7a-c429ac2144a3" src="https://github.com/user-attachments/assets/98dcd8cd-7537-4d8f-b56d-bf02f0f242e6" />
-<img width="1536" height="1024" alt="9ab584a2-bc7c-48fb-9e74-ad0758e30606" src="https://github.com/user-attachments/assets/64bced6c-cff9-41e5-97eb-4af9f01bdd22" />
-
-# README
-
-## About
-
-This is the official Wails Svelte template.
-\*\*\*Using Wails V2.16.0
-
-## Live Development
-
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
-
-## Building
 
 To build a redistributable, production mode package, use `wails build`.
