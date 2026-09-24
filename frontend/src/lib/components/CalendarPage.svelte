@@ -2,8 +2,8 @@
     //import {svelte} from '@sveltejs/vite-plugin-svelte'
 
     import { onMount, onDestroy } from "svelte";
-
     import { activeWidgetKeyHandler, mode } from "../stores/keyboard.js";
+    import { calendar } from "../../../wailsjs/go/models";
     import {
         buildMonthGrid,
         isSameDay,
@@ -14,10 +14,14 @@
     import {
         ListCalendarOccurrences,
         ToggleEventCompletion,
+        AddEvent,
+        DeleteEvent,
     } from "../../../wailsjs/go/main/App.js";
 
     const today = new Date();
 
+    let now = new Date();
+    let insertMode = false;
     let viewedYear = today.getFullYear();
     let viewedMonth = today.getMonth();
     let cells = buildMonthGrid(viewedYear, viewedMonth);
@@ -27,11 +31,70 @@
     );
     let eventCursor = 0;
     let occurrences = [];
+    let newTitle = "";
     let loading = true;
     let error = null;
     let listMode = false;
+    let inputEl;
     var selectedOcc;
     let occEventId = "yo";
+
+    $: timeStr = now.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+    });
+
+    function exitInsertMode() {
+        insertMode = false;
+        newTitle = "";
+        inputEl?.blur();
+    }
+
+    async function enterInsertMode() {
+        insertMode = true;
+        await tick();
+        inputEl?.focus();
+    }
+
+    async function onInputKeydown(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+
+            const title = newTitle.trim();
+
+            if (title) {
+                try {
+                    const ruleWithUntil = {
+                        frequency: "yearly",
+                        interval: 2,
+                        count: 10,
+                        until: new Date("2026-12-31T23:59:59Z").toISOString(),
+                    };
+
+                    const rule =
+                        calendar.RecurrenceRule.createFrom(ruleWithUntil);
+                    const created = await AddEvent(
+                        title,
+                        "",
+                        "",
+                        cells[cursor].date,
+                        cells[cursor].date,
+                        false,
+                        rule,
+                        false,
+                    );
+                    occurrences = [...occurrences, created];
+                } catch (e) {
+                    error = String(e);
+                }
+            }
+            exitInsertMode();
+        } else if (event.key === "Escape") {
+            event.preventDefault();
+            exitInsertMode();
+        }
+        await fetchOccurrences();
+    }
 
     async function fetchOccurrences() {
         loading = true;
@@ -123,27 +186,50 @@
                     changeMonth(1);
                     break;
             }
-        } else {
-            switch (event.key) {
-                case "q":
-                    listMode = false;
-                    break;
+        } else if (listMode) {
+            if (event.key === "a") {
+                event.preventDefault();
+                inputEl?.focus();
+                enterInsertMode();
+                return;
+            }
 
-                case "Enter":
-                    toggleCompletion(selectedDayOccurrences[eventCursor]);
-                    break;
+            if (!insertMode) {
+                switch (event.key) {
+                    case "q":
+                        listMode = false;
+                        break;
 
-                case "k":
-                    if (eventCursor === 0) {
-                    } else {
-                        eventCursor = Math.min(cursor + 1, selectedDayOccurrences.length - 1);
-                    }
-                    break;
-                case "j":
-                    eventCursor = Math.min(cursor + 1, selectedDayOccurrences.length - 1);
-                    break;
+                    case "Enter":
+                        toggleCompletion(selectedDayOccurrences[eventCursor]);
+                        break;
+
+                    case "k":
+                        if (eventCursor === 0) {
+                        } else {
+                            eventCursor = Math.min(
+                                eventCursor - 1,
+                                selectedDayOccurrences.length - 1,
+                            );
+                        }
+                        break;
+                    case "j":
+                        eventCursor = Math.min(
+                            eventCursor + 1,
+                            selectedDayOccurrences.length - 1,
+                        );
+                        break;
+                    case "x":
+                        DeleteOccurrence(selectedDayOccurrences[eventCursor]);
+                        break;
+                }
             }
         }
+    }
+
+    async function DeleteOccurrence(occ) {
+        DeleteEvent(occ.eventId);
+        await fetchOccurrences();
     }
 
     onMount(async () => {
@@ -255,10 +341,7 @@
             {#if selectedDayOccurrences.length === 0}
                 <p class="calendar-detail-empty">Nothing scheduled</p>
             {:else}
-                <ul
-                    class="calendar-detail-list"
-                    class:cursor={listMode === true}
-                >
+                <ul class="calendar-detail-list" class:cursor={listMode}>
                     {#each selectedDayOccurrences as occ, index (occurrenceKey(occ))}
                         <li
                             class="calendar-detail-item"
@@ -285,6 +368,18 @@
                     {/each}
                 </ul>
             {/if}
+            <div class="tasks-add-row">
+                <input
+                    class="todo-input"
+                    type="text"
+                    bind:this={inputEl}
+                    bind:value={newTitle}
+                    placeholder="press a to add a task…"
+                    on:keydown={onInputKeydown}
+                    on:focus={() => (insertMode = true)}
+                    on:blur={exitInsertMode}
+                />
+            </div>
         </div>
 
         {#if error}

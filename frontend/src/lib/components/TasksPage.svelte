@@ -75,17 +75,18 @@
         }
     }
 
-    async function enterInsertMode() {
-        insertMode = true;
-        pendingPriority = "medium";
-        await tick();
-        inputEl?.focus();
-    }
 
     function exitInsertMode() {
         insertMode = false;
         newTitle = "";
         inputEl?.blur();
+    }
+
+    async function enterInsertMode() {
+        insertMode = true;
+        pendingPriority = "medium";
+        await tick();
+        inputEl?.focus();
     }
 
     function cyclePendingPriority() {
