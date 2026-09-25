@@ -143,6 +143,12 @@
     }
 
     function handleKey(event) {
+            if (event.key === "a") {
+                event.preventDefault();
+                inputEl?.focus();
+                enterInsertMode();
+                return;
+            }
         if (!listMode) {
             switch (event.key) {
                 case "h":
@@ -187,12 +193,6 @@
                     break;
             }
         } else if (listMode) {
-            if (event.key === "a") {
-                event.preventDefault();
-                inputEl?.focus();
-                enterInsertMode();
-                return;
-            }
 
             if (!insertMode) {
                 switch (event.key) {
