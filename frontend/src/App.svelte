@@ -6,6 +6,7 @@
     import TabBar from "./lib/components/TabBar.svelte";
     import Dashboard from "./lib/components/Dashboard.svelte";
     import TasksPage from "./lib/components/TasksPage.svelte";
+    import Resources from "./lib/components/ResourcesPage.svelte";
     import CalendarPage from "./lib/components/CalendarPage.svelte";
     //import NotesPage from "./lib/components/NotesPage.svelte";
     import ReminderPopup from "./lib/components/ReminderPopup.svelte";
@@ -16,7 +17,7 @@
     import {
         mode,
         selectedWidgetId,
-        activeWidgetKeyHandler
+        activeWidgetKeyHandler,
     } from "./lib/stores/keyboard.js";
 
     const DIRECTIONS = { h: "left", l: "right", j: "down", k: "up" };
@@ -46,7 +47,7 @@
     }
 
     function moveTab(direction) {
-        const index = tabs.findIndex(tab => tab.id === activeTab);
+        const index = tabs.findIndex((tab) => tab.id === activeTab);
 
         let next = index + direction;
 
@@ -67,7 +68,11 @@
         if (direction) {
             event.preventDefault();
 
-            const nextId = moveSelection(widgets, get(selectedWidgetId), direction);
+            const nextId = moveSelection(
+                widgets,
+                get(selectedWidgetId),
+                direction,
+            );
 
             if (nextId === null) {
                 mode.set("tabs");
@@ -168,7 +173,7 @@
 
         // Digit tab-shortcuts always work, regardless of mode (dashboard
         // grid nav, a locked widget, or a page like Tasks owning the keys).
-        const numericTab = tabs.find(tab => tab.key === event.key);
+        const numericTab = tabs.find((tab) => tab.key === event.key);
 
         if (numericTab) {
             selectTab(numericTab.id);
@@ -212,11 +217,7 @@
 <div class="app-shell">
     <MenuBar {version} />
 
-    <TabBar
-        {tabs}
-        {activeTab}
-        onSelect={selectTab}
-    />
+    <TabBar {tabs} {activeTab} onSelect={selectTab} />
 
     <main>
         {#if activeTab === "dashboard"}
@@ -225,6 +226,8 @@
             <TasksPage />
         {:else if activeTab === "calendar"}
             <CalendarPage />
+        {:else if activeTab === "learning"}
+            <Resources />
         {:else}
             <div class="page-placeholder">
                 <span class="eyebrow">
@@ -232,7 +235,7 @@
                 </span>
 
                 <h1>
-                    {tabs.find(tab => tab.id === activeTab)?.label}
+                    {tabs.find((tab) => tab.id === activeTab)?.label}
                 </h1>
 
                 <p>This section is ready to be built.</p>
