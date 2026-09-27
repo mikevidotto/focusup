@@ -1,8 +1,11 @@
 <script>
     // Import the runtime from the auto-generated wailsjs directory
     import { BrowserOpenURL } from "../../../wailsjs/runtime/runtime";
+    import { onMount, onDestroy } from "svelte";
+    import { activeWidgetKeyHandler } from "../stores/keyboard";
 
     let toggle = false;
+    let cursor = 0;
 
     function openCtf101() {
         BrowserOpenURL("https://ctf101.org");
@@ -13,6 +16,19 @@
         BrowserOpenURL("https://liveoverflow.com");
         toggle = !toggle;
     }
+
+    async function handleKey(event) {
+        switch(event.Key) {
+        }
+    }
+
+    onMount(async () => {
+        activeWidgetKeyHandler.set(handleKey);
+    });
+
+    onDestroy(() => {
+        activeWidgetKeyHandler.set(null);
+    });
 </script>
 
 <div class="page-placeholder notes-page" style="margin-top:0">
