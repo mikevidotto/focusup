@@ -4,21 +4,22 @@
     import { onMount, onDestroy } from "svelte";
     import { activeWidgetKeyHandler } from "../stores/keyboard";
 
-    let toggle = false;
     let cursor = 0;
 
     function openCtf101() {
         BrowserOpenURL("https://ctf101.org");
-        toggle = !toggle;
     }
 
     function openLiveOverFlow() {
         BrowserOpenURL("https://liveoverflow.com");
-        toggle = !toggle;
+    }
+
+    function openHelloInterview() {
+        BrowserOpenURL("https://hellointerview.com");
     }
 
     async function handleKey(event) {
-        switch(event.Key) {
+        switch (event.Key) {
         }
     }
 
@@ -42,10 +43,16 @@
         <br />
 
         <p>useful links</p>
-
-        <button on:click={openCtf101}>Ctf101</button>
-        <button on:click={openLiveOverFlow}>LiveOverFlow</button>
-
-        <a>{toggle}</a>
+        <ul>
+            <li>
+                <button on:click={openCtf101}>Ctf101</button>
+            </li>
+            <li>
+                <button on:click={openLiveOverFlow}>LiveOverFlow</button>
+            </li>
+            <li>
+                <button on:click={openHelloInterview}>hellointerview</button>
+            </li>
+        </ul>
     </div>
 </div>
