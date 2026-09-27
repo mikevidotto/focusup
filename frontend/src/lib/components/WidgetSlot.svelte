@@ -3,12 +3,14 @@
     export let title;
     export let shortcut;
     export let selected = false;
+    export let focused = false;
     export let showHeader = true;
 </script>
 
 <section
     class="widget-slot"
     class:selected
+    class:focused
     data-widget={id}
 >
     {#if showHeader}

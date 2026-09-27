@@ -498,6 +498,14 @@ kbd {
     background: var(--surface-selected);
 }
 
+.widget-slot.focused {
+    border: 1px solid red;
+}
+
+.svelte:component {
+    border: 1px solid red;
+}
+
 .widget-header {
     min-height: 47px;
 

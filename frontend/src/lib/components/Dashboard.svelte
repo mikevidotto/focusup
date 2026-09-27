@@ -1,10 +1,14 @@
 <script>
     import { onMount, onDestroy } from "svelte";
+    import { get } from "svelte/store";
 
     import WidgetSlot from "./WidgetSlot.svelte";
     import DueSoonBanner from "./DueSoonBanner.svelte";
     import { widgets } from "../widgets.js";
-    import { mode, selectedWidgetId } from "../stores/keyboard.js";
+    import {
+        mode,
+        selectedWidgetId,
+    } from "../stores/keyboard.js";
     import { getGreeting } from "../greeting.js";
 
     let now = new Date();
@@ -19,6 +23,7 @@
     onDestroy(() => {
         clearInterval(interval);
     });
+
 
     $: greeting = getGreeting(now);
 </script>
@@ -54,12 +59,14 @@
                     title={widget.title}
                     shortcut={widget.shortcut}
                     selected={$selectedWidgetId === widget.id}
+                    focused={$selectedWidgetId === widget.id && $mode === "widget"}
                     showHeader={!widget.customHeader}
                 >
                     {#if widget.component}
                         <svelte:component
                             this={widget.component}
-                            focused={$mode === "widget" && $selectedWidgetId === widget.id}
+                            focused={$mode === "widget" &&
+                                $selectedWidgetId === widget.id}
                         />
                     {:else}
                         <div class="empty-widget">
