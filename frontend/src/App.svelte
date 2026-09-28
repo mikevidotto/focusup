@@ -7,6 +7,7 @@
     import Dashboard from "./lib/components/Dashboard.svelte";
     import TasksPage from "./lib/components/TasksPage.svelte";
     import Resources from "./lib/components/ResourcesPage.svelte";
+    import Habits from "./lib/components/HabitsPage.svelte";
     import CalendarPage from "./lib/components/CalendarPage.svelte";
     //import NotesPage from "./lib/components/NotesPage.svelte";
     import ReminderPopup from "./lib/components/ReminderPopup.svelte";
@@ -134,6 +135,10 @@
                     mode.set("grid");
                     return;
                 }
+                
+                if (activeTab === "habits") {
+                    return;
+                }
 
                 break;
             }
@@ -228,6 +233,8 @@
             <CalendarPage />
         {:else if activeTab === "learning"}
             <Resources />
+        {:else if activeTab === "habits"}
+            <Habits />
         {:else}
             <div class="page-placeholder">
                 <span class="eyebrow">
