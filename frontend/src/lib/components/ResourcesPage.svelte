@@ -34,15 +34,15 @@
 
 <div class="page-placeholder notes-page" style="margin-top:0">
     <div class="page-placeholder">
-        <span class="eyebrow"> FOCUSUP / NOTES </span>
+        <span class="eyebrow"> FOCUSUP / LEARNING</span>
 
-        <h1>Notes</h1>
+        <h1>Learning</h1>
         <br />
         <br />
         <br />
         <br />
 
-        <p>useful links</p>
+        <p>cyber/hacking</p>
         <ul>
             <li>
                 <button on:click={openCtf101}>Ctf101</button>
