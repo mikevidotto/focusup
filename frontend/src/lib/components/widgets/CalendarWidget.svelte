@@ -8,14 +8,20 @@
         isSameDay,
         startOfDay,
         endOfDay,
-        WEEKDAY_LABELS
+        WEEKDAY_LABELS,
     } from "../../calendarGrid.js";
-    import { formatOccurrenceTime, occurrenceKey } from "../../calendarDisplay.js";
-    import { ListCalendarOccurrences, ToggleEventCompletion } from "../../../../wailsjs/go/main/App.js";
+    import {
+        formatOccurrenceTime,
+        occurrenceKey,
+    } from "../../calendarDisplay.js";
+    import {
+        ListCalendarOccurrences,
+        ToggleEventCompletion,
+    } from "../../../../wailsjs/go/main/App.js";
 
     export let focused = false;
 
-    const MODES = ["today", "week", "month"];
+    const MODES = [/*"today",*/ "week", "month"];
 
     const today = new Date();
     const weekCells = buildWeekGrid(today);
@@ -34,10 +40,10 @@
             let rangeStart;
             let rangeEnd;
 
-            if (mode === "today") {
+            /*if (mode === "today") {
                 rangeStart = startOfDay(today);
                 rangeEnd = endOfDay(today);
-            } else if (mode === "week") {
+            } else */ if (mode === "week") {
                 rangeStart = weekCells[0].date;
                 rangeEnd = endOfDay(weekCells[weekCells.length - 1].date);
             } else {
@@ -99,29 +105,35 @@
     // whenever `occurrences` changes without some *other* tracked variable
     // also happening to change. Declaring these with `$:` makes each
     // function itself a tracked dependency wherever it's called.
-    $: occurrencesForDay = date => occurrences.filter(o => isSameDay(new Date(o.start), date));
+    $: occurrencesForDay = (date) =>
+        occurrences.filter((o) => isSameDay(new Date(o.start), date));
 
     // null = no events that day, "done" = every event that day is done,
     // "important" = not every event is done and at least one is important,
     // "normal" = events but none done/important.
-    $: dayIndicator = date => {
+    $: dayIndicator = (date) => {
         const dayOccs = occurrencesForDay(date);
         if (dayOccs.length === 0) {
             return null;
         }
-        if (dayOccs.every(o => o.done)) {
+        if (dayOccs.every((o) => o.done)) {
             return "done";
         }
-        return dayOccs.some(o => o.important) ? "important" : "normal";
+        return dayOccs.some((o) => o.important) ? "important" : "normal";
     };
 
-    $: todayOccurrences = occurrencesForDay(today).sort((a, b) => new Date(a.start) - new Date(b.start));
+    $: todayOccurrences = occurrencesForDay(today).sort(
+        (a, b) => new Date(a.start) - new Date(b.start),
+    );
     $: modeLabel =
         mode === "today"
             ? "Today"
             : mode === "week"
-            ? "This Week"
-            : today.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+              ? "This Week"
+              : today.toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                });
 </script>
 
 <div class="calendar-widget">
@@ -149,13 +161,19 @@
                             <button
                                 type="button"
                                 class="calendar-detail-check"
-                                aria-label={occ.done ? "Mark not done" : "Mark done"}
+                                aria-label={occ.done
+                                    ? "Mark not done"
+                                    : "Mark done"}
                                 on:click={() => toggleCompletion(occ)}
                             >
                                 {occ.done ? "☑" : "☐"}
                             </button>
-                            <span class="calendar-widget-time">{formatOccurrenceTime(occ)}</span>
-                            <span class="calendar-widget-event-title">{occ.title}</span>
+                            <span class="calendar-widget-time"
+                                >{formatOccurrenceTime(occ)}</span
+                            >
+                            <span class="calendar-widget-event-title"
+                                >{occ.title}</span
+                            >
                         </li>
                     {/each}
                 </ul>
@@ -164,9 +182,16 @@
             <div class="calendar-widget-week">
                 {#each weekCells as cell (cell.date.toISOString())}
                     {@const indicator = dayIndicator(cell.date)}
-                    <div class="calendar-widget-week-cell" class:today={isSameDay(cell.date, today)}>
-                        <span class="calendar-widget-weekday">{WEEKDAY_LABELS[cell.col]}</span>
-                        <span class="calendar-widget-day-number">{cell.date.getDate()}</span>
+                    <div
+                        class="calendar-widget-week-cell"
+                        class:today={isSameDay(cell.date, today)}
+                    >
+                        <span class="calendar-widget-weekday"
+                            >{WEEKDAY_LABELS[cell.col]}</span
+                        >
+                        <span class="calendar-widget-day-number"
+                            >{cell.date.getDate()}</span
+                        >
                         <span
                             class="calendar-widget-dot"
                             class:visible={indicator !== null}
@@ -176,10 +201,33 @@
                     </div>
                 {/each}
             </div>
+            <ul style="margin-top: 20px;" class="calendar-widget-list">
+                {#each todayOccurrences as occ (occurrenceKey(occ))}
+                    <li class="calendar-widget-item" class:done={occ.done}>
+                        <button
+                            type="button"
+                            class="calendar-detail-check"
+                            aria-label={occ.done
+                                ? "Mark not done"
+                                : "Mark done"}
+                            on:click={() => toggleCompletion(occ)}
+                        >
+                            {occ.done ? "☑" : "☐"}
+                        </button>
+                        <span class="calendar-widget-time"
+                            >{formatOccurrenceTime(occ)}</span
+                        >
+                        <span class="calendar-widget-event-title"
+                            >{occ.title}</span
+                        >
+                    </li>
+                {/each}
+            </ul>
         {:else}
             <div class="calendar-widget-month-grid">
                 {#each WEEKDAY_LABELS as label}
-                    <span class="calendar-widget-month-weekday">{label[0]}</span>
+                    <span class="calendar-widget-month-weekday">{label[0]}</span
+                    >
                 {/each}
 
                 {#each monthCells as cell (cell.date.toISOString())}
@@ -189,7 +237,9 @@
                         class:dimmed={!cell.inCurrentMonth}
                         class:today={isSameDay(cell.date, today)}
                     >
-                        <span class="calendar-widget-day-number">{cell.date.getDate()}</span>
+                        <span class="calendar-widget-day-number"
+                            >{cell.date.getDate()}</span
+                        >
                         <span
                             class="calendar-widget-dot"
                             class:visible={indicator !== null}

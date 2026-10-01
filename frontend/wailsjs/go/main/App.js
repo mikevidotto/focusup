@@ -6,6 +6,10 @@ export function AddEvent(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) {
   return window['go']['main']['App']['AddEvent'](arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
 }
 
+export function AddHabit(arg1) {
+  return window['go']['main']['App']['AddHabit'](arg1);
+}
+
 export function AddReminder(arg1, arg2) {
   return window['go']['main']['App']['AddReminder'](arg1, arg2);
 }
@@ -16,6 +20,10 @@ export function AddTask(arg1, arg2) {
 
 export function DeleteEvent(arg1) {
   return window['go']['main']['App']['DeleteEvent'](arg1);
+}
+
+export function DeleteHabit(arg1) {
+  return window['go']['main']['App']['DeleteHabit'](arg1);
 }
 
 export function DeleteTask(arg1) {
@@ -38,12 +46,20 @@ export function ListEvents() {
   return window['go']['main']['App']['ListEvents']();
 }
 
+export function ListHabits() {
+  return window['go']['main']['App']['ListHabits']();
+}
+
 export function ListTasks() {
   return window['go']['main']['App']['ListTasks']();
 }
 
 export function ToggleEventCompletion(arg1, arg2) {
   return window['go']['main']['App']['ToggleEventCompletion'](arg1, arg2);
+}
+
+export function ToggleHabit(arg1) {
+  return window['go']['main']['App']['ToggleHabit'](arg1);
 }
 
 export function ToggleTask(arg1) {

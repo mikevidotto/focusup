@@ -14,7 +14,7 @@ type Service struct {
 }
 
 func NewService() (*Service, error) {
-	path, err := dataFilePath()
+	path, err := datafilepath()
 	if err != nil {
 		return nil, err
 	}

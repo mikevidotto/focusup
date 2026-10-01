@@ -1,4 +1,4 @@
-package tasks
+package habits 
 
 import (
 	"encoding/json"
@@ -17,19 +17,19 @@ func datafilepath() (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(appdir, "tasks.json"), nil
+	return filepath.Join(appdir, "habits.json"), nil
 }
 
-func load(path string) ([]Task, error) {
+func load(path string) ([]Habit, error) {
 	data, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
-		return []Task{}, nil
+		return []Habit{}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	var loaded []Task
+	var loaded []Habit
 	if err := json.Unmarshal(data, &loaded); err != nil {
 		return nil, err
 	}
@@ -37,8 +37,8 @@ func load(path string) ([]Task, error) {
 	return loaded, nil
 }
 
-func save(path string, tasks []Task) error {
-	data, err := json.MarshalIndent(tasks, "", "  ")
+func save(path string, habits []Habit) error {
+	data, err := json.MarshalIndent(habits, "", "  ")
 	if err != nil {
 		return err
 	}

@@ -9,6 +9,7 @@ import (
 
 	appservice "focusup/internal/app"
 	"focusup/internal/calendar"
+	"focusup/internal/habits"
 	"focusup/internal/notifier"
 	"focusup/internal/tasks"
 )
@@ -21,12 +22,18 @@ type App struct {
 	ctx         context.Context
 	infoService *appservice.InfoService
 	tasks       *tasks.Service
+	habits      *habits.Service
 	calendar    *calendar.Service
 	notifier    *notifier.Notifier
 }
 
 func NewApp() *App {
 	taskService, err := tasks.NewService()
+	if err != nil {
+		log.Fatalf("failed to initialize task storage: %v", err)
+	}
+
+	habitService, err := habits.NewService()
 	if err != nil {
 		log.Fatalf("failed to initialize task storage: %v", err)
 	}
@@ -39,6 +46,7 @@ func NewApp() *App {
 	app := &App{
 		infoService: appservice.NewInfoService(),
 		tasks:       taskService,
+		habits:      habitService,
 		calendar:    calendarService,
 	}
 
@@ -75,6 +83,22 @@ func (a *App) ToggleTask(id string) (tasks.Task, error) {
 
 func (a *App) DeleteTask(id string) error {
 	return a.tasks.Delete(id)
+}
+
+func (a *App) ListHabits() []habits.Habit {
+	return a.habits.List()
+}
+
+func (a *App) AddHabit(title string) (habits.Habit, error) {
+	return a.habits.Add(title)
+}
+
+func (a *App) ToggleHabit(id string) (habits.Habit, error) {
+	return a.habits.Toggle(id)
+}
+
+func (a *App) DeleteHabit(id string) error {
+	return a.habits.Delete(id)
 }
 
 func (a *App) ListEvents() []calendar.Event {
