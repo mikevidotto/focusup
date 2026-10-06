@@ -32,9 +32,7 @@ then use enter to toggle whether the habit has been successfully completed for t
 */
     import { onMount, onDestroy, tick } from "svelte";
     import { activeWidgetKeyHandler } from "../stores/keyboard.js";
-    import {
-        splitHabits,
-    } from "../habitDisplay.js";
+    import { splitHabits } from "../habitDisplay.js";
     import {
         ListHabits,
         AddHabit,

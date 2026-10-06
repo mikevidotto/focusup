@@ -175,7 +175,6 @@
                     } else {
                         cursor = next;
                     }
-
                     break;
                 }
                 case "Enter":
@@ -203,7 +202,6 @@
                     case "Enter":
                         toggleCompletion(selectedDayOccurrences[eventCursor]);
                         break;
-
                     case "k":
                         if (eventCursor === 0) {
                         } else {
