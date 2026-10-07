@@ -4,6 +4,7 @@
         WindowToggleMaximise,
         Quit
     } from "../../../wailsjs/runtime/runtime.js";
+    import { theme, toggleTheme } from "../stores/theme.js";
 
     export let version = "0.1.0";
 </script>
@@ -19,6 +20,14 @@
     </div>
 
     <div class="window-controls">
+        <button
+            aria-label="Switch to {$theme === 'dark' ? 'light' : 'dark'} theme"
+            title="Toggle theme (t)"
+            on:click={toggleTheme}
+        >
+            {$theme === "dark" ? "☀" : "☾"}
+        </button>
+
         <button
             aria-label="Minimize"
             on:click={WindowMinimise}

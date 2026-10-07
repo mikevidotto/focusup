@@ -11,6 +11,7 @@ import (
 	"focusup/internal/calendar"
 	"focusup/internal/habits"
 	"focusup/internal/notifier"
+	"focusup/internal/settings"
 	"focusup/internal/tasks"
 )
 
@@ -25,6 +26,7 @@ type App struct {
 	habits      *habits.Service
 	calendar    *calendar.Service
 	notifier    *notifier.Notifier
+	settings    *settings.Service
 }
 
 func NewApp() *App {
@@ -43,11 +45,17 @@ func NewApp() *App {
 		log.Fatalf("failed to initialize calendar storage: %v", err)
 	}
 
+	settingsService, err := settings.NewService()
+	if err != nil {
+		log.Fatalf("failed to initialize settings storage: %v", err)
+	}
+
 	app := &App{
 		infoService: appservice.NewInfoService(),
 		tasks:       taskService,
 		habits:      habitService,
 		calendar:    calendarService,
+		settings:    settingsService,
 	}
 
 	app.notifier = notifier.New(calendarService, func(reminder calendar.DueReminder) {
@@ -67,6 +75,15 @@ func (a *App) startup(ctx context.Context) {
 // Give each major feature/service its own package instead.
 func (a *App) GetAppInfo() appservice.Info {
 	return a.infoService.GetInfo()
+}
+
+func (a *App) GetSettings() settings.Settings {
+	return a.settings.Get()
+}
+
+// SetTheme persists the UI theme ("dark" or "light").
+func (a *App) SetTheme(theme string) (settings.Settings, error) {
+	return a.settings.SetTheme(theme)
 }
 
 func (a *App) ListTasks() []tasks.Task {

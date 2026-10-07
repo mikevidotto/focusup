@@ -1,12 +1,12 @@
 html {
-    background-color: rgba(27, 38, 54, 1);
+    background-color: var(--bg);
     text-align: center;
-    color: white;
+    color: var(--text);
 }
 
 body {
     margin: 0;
-    color: white;
+    color: var(--text);
     font-family: Consolas, "Cascadia Code", "SF Mono", Menlo, Monaco,
     "Courier New", monospace;
 }
@@ -16,11 +16,13 @@ body {
     text-align: center;
 }
 :root {
+    color-scheme: dark;
+
     font-family: Consolas, "Cascadia Code", "SF Mono", Menlo, Monaco,
     "Courier New", monospace;
 
-    color: #dedbd3;
-    background: #07080a;
+    color: var(--text);
+    background: var(--bg);
 
     --bg: #010101;
     --surface: #0a0b0f;
@@ -37,8 +39,15 @@ body {
     --accent: #7aa89f; /*#b84e48;*/
     --accent-soft: #5a827a; /*#713631;*/
 
+    --accent-hover: #9cc4bb;
+    --on-accent: #dedbd3;
+
     --success: #738d75;
     --warning: #b39562;
+
+    --muted-control: #555650;
+    --glow: rgba(255, 255, 255, 0.025);
+    --shadow: var(--shadow);
 
     --mono:
         Consolas,
@@ -48,6 +57,37 @@ body {
         Monaco,
         "Courier New",
         monospace;
+}
+
+/* Light theme: same tokens, toggled via data-theme on <html> (see
+   lib/stores/theme.js). Warm paper background to mirror the dark theme's
+   warm off-white text. */
+:root[data-theme="light"] {
+    color-scheme: light;
+
+    --bg: #f3f1ec;
+    --surface: #fbfaf7;
+    --surface-hover: #f0eee8;
+    --surface-selected: #e8eeeb;
+
+    --border: #d9d6cd;
+    --border-soft: #e6e3db;
+
+    --text: #24262c;
+    --text-soft: #535c78;
+    --text-faint: #767d93;
+
+    --accent: #3d7a6e;
+    --accent-soft: #9bc2b9;
+    --accent-hover: #2c5f55;
+    --on-accent: #ffffff;
+
+    --success: #4c7a51;
+    --warning: #946b2a;
+
+    --muted-control: #6b6c66;
+    --glow: rgba(255, 255, 255, 0.6);
+    --shadow: rgba(40, 36, 28, 0.12);
 }
 
 * {
@@ -84,7 +124,7 @@ button {
     background:
         radial-gradient(
             circle at 10% 0%,
-            rgba(255, 255, 255, 0.025),
+            var(--glow),
             transparent 25%
         ),
         var(--bg);
@@ -181,7 +221,7 @@ button {
     border: 0;
     background: transparent;
 
-    color: #555650;
+    color: var(--muted-control);
 
     cursor: pointer;
 
@@ -197,7 +237,7 @@ button {
 
 .window-controls .close:hover {
     background: var(--accent);
-    color: var(--text);
+    color: var(--on-accent);
 }
 
 .brand {
@@ -1476,7 +1516,7 @@ kbd {
 }
 
 .habit-chart-bar.hovered {
-    fill: #9cc4bb;
+    fill: var(--accent-hover);
 }
 
 .habit-chart-hit {
@@ -1502,7 +1542,7 @@ kbd {
 
     border: 1px solid var(--border);
     background: var(--bg);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 12px var(--shadow);
 
     pointer-events: none;
     white-space: nowrap;
@@ -1574,7 +1614,7 @@ kbd {
     border: 1px solid var(--accent-soft);
 
     background: var(--surface);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 16px var(--shadow);
 }
 
 .reminder-popup-body {

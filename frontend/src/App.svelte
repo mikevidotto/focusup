@@ -20,6 +20,7 @@
         selectedWidgetId,
         activeWidgetKeyHandler,
     } from "./lib/stores/keyboard.js";
+    import { initTheme, toggleTheme } from "./lib/stores/theme.js";
 
     const DIRECTIONS = { h: "left", l: "right", j: "down", k: "up" };
 
@@ -148,6 +149,10 @@
                 }
                 break;
 
+            case "t":
+                toggleTheme();
+                return;
+
             case "?":
                 console.log("Open keyboard help");
                 return;
@@ -207,6 +212,7 @@
     }
 
     onMount(() => {
+        initTheme();
         window.addEventListener("keydown", handleKeyboard);
 
         return () => {
@@ -257,6 +263,7 @@
             <span><kbd>j</kbd>/<kbd>k</kbd> navigate</span>
             <span><kbd>enter</kbd> open</span>
             <span><kbd>q</kbd> back</span>
+            <span><kbd>t</kbd> theme</span>
             <span><kbd>/</kbd> command</span>
         </div>
 
