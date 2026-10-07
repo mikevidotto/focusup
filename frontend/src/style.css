@@ -1181,6 +1181,374 @@ kbd {
     font-size: 11px;
 }
 
+/* HABITS PAGE */
+
+.habits-page {
+    text-align: left;
+}
+
+.habits-week-label {
+    margin-bottom: 16px;
+
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+}
+
+.habits-week-tag {
+    margin-left: 8px;
+
+    color: var(--text-faint);
+    font-size: 11px;
+}
+
+.habits-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.habits-list {
+    max-height: 55vh;
+    margin: 0;
+    padding: 0;
+
+    overflow-y: auto;
+    list-style: none;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.habits-row {
+    flex-shrink: 0;
+
+    display: grid;
+    grid-template-columns: minmax(140px, 1fr) repeat(7, 32px) 40px;
+    align-items: center;
+    gap: 8px;
+
+    padding: 6px 8px;
+
+    border: 1px solid transparent;
+
+    color: var(--text);
+    font-size: 13px;
+}
+
+.habits-row.cursor {
+    border-color: var(--accent-soft);
+    background: var(--surface-selected);
+}
+
+.habits-row.drilled {
+    border-color: var(--accent);
+}
+
+.habits-header {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.habits-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.habits-delete-confirm {
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+}
+
+.habits-day-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    color: var(--text-faint);
+    font-family: var(--mono);
+    font-size: 10px;
+}
+
+.habits-day-label.today {
+    color: var(--accent);
+}
+
+.habits-day-number {
+    font-size: 12px;
+}
+
+.habits-box {
+    width: 24px;
+    height: 24px;
+    justify-self: center;
+
+    padding: 0;
+
+    border: 1px solid var(--border);
+    background: var(--surface);
+
+    color: var(--accent);
+    font-size: 13px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.habits-box.today {
+    border-color: var(--accent-soft);
+}
+
+.habits-box.done {
+    background: var(--surface-hover);
+}
+
+.habits-box.future {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.habits-box.cursor {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.habits-count {
+    color: var(--text-faint);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: right;
+}
+
+/* HABIT HISTORY */
+
+.habits-layout {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 32px;
+}
+
+.habits-main {
+    flex: 1 1 520px;
+    min-width: 0;
+}
+
+.habit-history {
+    flex: 1 1 420px;
+    min-width: 0;
+
+    padding: 16px;
+
+    border: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.habit-history-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.habit-history-title {
+    min-width: 0;
+}
+
+.habit-history-title h2 {
+    margin: 4px 0 0;
+    overflow: hidden;
+
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 400;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.habit-history-views {
+    flex-shrink: 0;
+    display: flex;
+}
+
+.habit-history-views button {
+    padding: 4px 10px;
+
+    border: 1px solid var(--border);
+    background: transparent;
+
+    color: var(--text-faint);
+    font-family: var(--mono);
+    font-size: 11px;
+
+    cursor: pointer;
+}
+
+.habit-history-views button + button {
+    border-left: 0;
+}
+
+.habit-history-views button.active {
+    border-color: var(--accent-soft);
+    background: var(--surface-selected);
+    color: var(--text);
+}
+
+.habit-history-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+
+    margin: 16px 0;
+}
+
+.habit-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    padding: 8px 10px;
+
+    border: 1px solid var(--border-soft);
+}
+
+.habit-stat-label {
+    color: var(--text-faint);
+    font-size: 10px;
+}
+
+.habit-stat-value {
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 18px;
+}
+
+.habit-history-subtitle {
+    margin-bottom: 8px;
+
+    color: var(--text-soft);
+    font-size: 11px;
+}
+
+.habit-history-chart {
+    position: relative;
+}
+
+.habit-history-chart svg {
+    display: block;
+    overflow: visible;
+}
+
+.habit-chart-grid {
+    stroke: var(--border);
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+.habit-chart-tick,
+.habit-chart-label {
+    fill: var(--text-faint);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+}
+
+.habit-chart-label.untracked {
+    opacity: 0.5;
+}
+
+.habit-chart-cap {
+    fill: var(--text-soft);
+    font-family: var(--mono);
+    font-size: 11px;
+}
+
+.habit-chart-track {
+    fill: var(--border);
+}
+
+.habit-chart-bar {
+    fill: var(--accent);
+}
+
+.habit-chart-bar.hovered {
+    fill: #9cc4bb;
+}
+
+.habit-chart-hit {
+    fill: transparent;
+    cursor: default;
+}
+
+.habit-grid-cell.hovered {
+    stroke: var(--text);
+    stroke-width: 1;
+}
+
+.habit-chart-tooltip {
+    position: absolute;
+    z-index: 1;
+    transform: translate(-50%, -100%);
+
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    padding: 6px 8px;
+
+    border: 1px solid var(--border);
+    background: var(--bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.habit-chart-tooltip.start {
+    transform: translate(-12px, -100%);
+}
+
+.habit-chart-tooltip.end {
+    transform: translate(calc(-100% + 12px), -100%);
+}
+
+.habit-chart-tooltip strong {
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.habit-chart-tooltip span {
+    color: var(--text-soft);
+    font-size: 10px;
+}
+
+.habit-grid-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+
+    margin-top: 8px;
+
+    color: var(--text-faint);
+    font-size: 10px;
+}
+
+.habit-grid-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.habit-grid-legend .habit-grid-swatch:not(:first-child) {
+    margin-left: 8px;
+}
+
 /* REMINDER POPUP */
 
 .reminder-popup-stack {

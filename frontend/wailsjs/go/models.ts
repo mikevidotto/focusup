@@ -287,9 +287,8 @@ export namespace habits {
 	export class Habit {
 	    id: string;
 	    name: string;
-	    done: boolean;
-	    createdAT: time.Time;
-	    dateCompleted?: time.Time;
+	    createdAt: time.Time;
+	    completions: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Habit(source);
@@ -299,9 +298,8 @@ export namespace habits {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.name = source["name"];
-	        this.done = source["done"];
-	        this.createdAT = this.convertValues(source["createdAT"], time.Time);
-	        this.dateCompleted = this.convertValues(source["dateCompleted"], time.Time);
+	        this.createdAt = this.convertValues(source["createdAt"], time.Time);
+	        this.completions = source["completions"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

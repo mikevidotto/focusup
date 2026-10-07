@@ -135,10 +135,6 @@
                     mode.set("grid");
                     return;
                 }
-                
-                if (activeTab === "habits") {
-                    return;
-                }
 
                 break;
             }

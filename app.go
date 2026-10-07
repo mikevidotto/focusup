@@ -35,7 +35,7 @@ func NewApp() *App {
 
 	habitService, err := habits.NewService()
 	if err != nil {
-		log.Fatalf("failed to initialize task storage: %v", err)
+		log.Fatalf("failed to initialize habit storage: %v", err)
 	}
 
 	calendarService, err := calendar.NewService()
@@ -89,12 +89,17 @@ func (a *App) ListHabits() []habits.Habit {
 	return a.habits.List()
 }
 
-func (a *App) AddHabit(title string) (habits.Habit, error) {
-	return a.habits.Add(title)
+func (a *App) AddHabit(name string) (habits.Habit, error) {
+	return a.habits.Add(name)
 }
 
-func (a *App) ToggleHabit(id string) (habits.Habit, error) {
-	return a.habits.Toggle(id)
+func (a *App) RenameHabit(id, name string) (habits.Habit, error) {
+	return a.habits.Rename(id, name)
+}
+
+// ToggleHabitCompletion flips whether the habit was done on date (YYYY-MM-DD).
+func (a *App) ToggleHabitCompletion(id, date string) (habits.Habit, error) {
+	return a.habits.ToggleCompletion(id, date)
 }
 
 func (a *App) DeleteHabit(id string) error {

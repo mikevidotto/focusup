@@ -54,12 +54,16 @@ export function ListTasks() {
   return window['go']['main']['App']['ListTasks']();
 }
 
+export function RenameHabit(arg1, arg2) {
+  return window['go']['main']['App']['RenameHabit'](arg1, arg2);
+}
+
 export function ToggleEventCompletion(arg1, arg2) {
   return window['go']['main']['App']['ToggleEventCompletion'](arg1, arg2);
 }
 
-export function ToggleHabit(arg1) {
-  return window['go']['main']['App']['ToggleHabit'](arg1);
+export function ToggleHabitCompletion(arg1, arg2) {
+  return window['go']['main']['App']['ToggleHabitCompletion'](arg1, arg2);
 }
 
 export function ToggleTask(arg1) {

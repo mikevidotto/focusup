@@ -1,6 +1,8 @@
 package habits
 
 import (
+	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -32,20 +34,27 @@ func (s *Service) List() []Habit {
 	defer s.mu.Unlock()
 
 	out := make([]Habit, len(s.habits))
-	copy(out, s.habits)
+	for i, h := range s.habits {
+		out[i] = h.clone()
+	}
 
 	return out
 }
 
 func (s *Service) Add(name string) (Habit, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return Habit{}, ErrEmptyName
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	habit := Habit{
-		ID:        uuid.NewString(),
-		Name:      name,
-		Done:      false,
-		CreatedAt: time.Now(),
+		ID:          uuid.NewString(),
+		Name:        name,
+		CreatedAt:   time.Now(),
+		Completions: []string{},
 	}
 
 	s.habits = append(s.habits, habit)
@@ -54,45 +63,85 @@ func (s *Service) Add(name string) (Habit, error) {
 		return Habit{}, err
 	}
 
-	return habit, nil
+	return habit.clone(), nil
 }
 
-func (s *Service) Toggle(id string) (Habit, error) {
+func (s *Service) Rename(id, name string) (Habit, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return Habit{}, ErrEmptyName
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for i := range s.habits {
-		if s.habits[i].ID == id {
-			s.habits[i].Done = !s.habits[i].Done
-
-			if s.habits[i].Done {
-				now := time.Now()
-				s.habits[i].CompletedAt = &now
-			} else {
-				s.habits[i].CompletedAt = nil
-			}
-
-			if err := save(s.path, s.habits); err != nil {
-				return Habit{}, err
-			}
-
-			return s.habits[i], nil
-		}
+	i := s.indexOf(id)
+	if i < 0 {
+		return Habit{}, ErrNotFound
 	}
 
-	return Habit{}, ErrNotFound
+	s.habits[i].Name = name
+
+	if err := save(s.path, s.habits); err != nil {
+		return Habit{}, err
+	}
+
+	return s.habits[i].clone(), nil
+}
+
+// ToggleCompletion marks the habit done on the given day (YYYY-MM-DD), or
+// un-marks it if it was already done that day.
+func (s *Service) ToggleCompletion(id, date string) (Habit, error) {
+	if _, err := time.Parse(DateLayout, date); err != nil {
+		return Habit{}, ErrInvalidDate
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	i := s.indexOf(id)
+	if i < 0 {
+		return Habit{}, ErrNotFound
+	}
+
+	completions := s.habits[i].Completions
+	if j := slices.Index(completions, date); j >= 0 {
+		completions = slices.Delete(completions, j, j+1)
+	} else {
+		completions = append(completions, date)
+		slices.Sort(completions)
+	}
+	s.habits[i].Completions = completions
+
+	if err := save(s.path, s.habits); err != nil {
+		return Habit{}, err
+	}
+
+	return s.habits[i].clone(), nil
 }
 
 func (s *Service) Delete(id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for i := range s.habits {
-		if s.habits[i].ID == id {
-			s.habits = append(s.habits[:i], s.habits[i+1:]...)
-			return save(s.path, s.habits)
-		}
+	i := s.indexOf(id)
+	if i < 0 {
+		return ErrNotFound
 	}
 
-	return ErrNotFound
+	s.habits = slices.Delete(s.habits, i, i+1)
+	return save(s.path, s.habits)
+}
+
+func (s *Service) indexOf(id string) int {
+	return slices.IndexFunc(s.habits, func(h Habit) bool { return h.ID == id })
+}
+
+// clone copies the Completions slice so callers can't mutate service state.
+func (h Habit) clone() Habit {
+	h.Completions = slices.Clone(h.Completions)
+	if h.Completions == nil {
+		h.Completions = []string{}
+	}
+	return h
 }

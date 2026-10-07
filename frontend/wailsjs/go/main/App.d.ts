@@ -32,8 +32,10 @@ export function ListHabits():Promise<Array<habits.Habit>>;
 
 export function ListTasks():Promise<Array<tasks.Task>>;
 
+export function RenameHabit(arg1:string,arg2:string):Promise<habits.Habit>;
+
 export function ToggleEventCompletion(arg1:string,arg2:time.Time):Promise<calendar.Event>;
 
-export function ToggleHabit(arg1:string):Promise<habits.Habit>;
+export function ToggleHabitCompletion(arg1:string,arg2:string):Promise<habits.Habit>;
 
 export function ToggleTask(arg1:string):Promise<tasks.Task>;
