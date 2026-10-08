@@ -18,6 +18,10 @@ export function AddTask(arg1, arg2) {
   return window['go']['main']['App']['AddTask'](arg1, arg2);
 }
 
+export function CompleteWorkout(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['CompleteWorkout'](arg1, arg2, arg3, arg4);
+}
+
 export function DeleteEvent(arg1) {
   return window['go']['main']['App']['DeleteEvent'](arg1);
 }
@@ -58,12 +62,24 @@ export function ListTasks() {
   return window['go']['main']['App']['ListTasks']();
 }
 
+export function ListWorkoutCycles() {
+  return window['go']['main']['App']['ListWorkoutCycles']();
+}
+
 export function RenameHabit(arg1, arg2) {
   return window['go']['main']['App']['RenameHabit'](arg1, arg2);
 }
 
+export function ResetWorkouts() {
+  return window['go']['main']['App']['ResetWorkouts']();
+}
+
 export function SetTheme(arg1) {
   return window['go']['main']['App']['SetTheme'](arg1);
+}
+
+export function SetupWorkouts(arg1, arg2) {
+  return window['go']['main']['App']['SetupWorkouts'](arg1, arg2);
 }
 
 export function ToggleEventCompletion(arg1, arg2) {
@@ -76,4 +92,16 @@ export function ToggleHabitCompletion(arg1, arg2) {
 
 export function ToggleTask(arg1) {
   return window['go']['main']['App']['ToggleTask'](arg1);
+}
+
+export function UndoLastWorkout() {
+  return window['go']['main']['App']['UndoLastWorkout']();
+}
+
+export function UpdateWorkoutCycle(arg1, arg2, arg3) {
+  return window['go']['main']['App']['UpdateWorkoutCycle'](arg1, arg2, arg3);
+}
+
+export function UpdateWorkoutLog(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['UpdateWorkoutLog'](arg1, arg2, arg3, arg4);
 }

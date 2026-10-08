@@ -4,6 +4,7 @@ import {time} from '../models';
 import {calendar} from '../models';
 import {habits} from '../models';
 import {tasks} from '../models';
+import {workouts} from '../models';
 import {app} from '../models';
 import {settings} from '../models';
 
@@ -14,6 +15,8 @@ export function AddHabit(arg1:string):Promise<habits.Habit>;
 export function AddReminder(arg1:string,arg2:number):Promise<calendar.Event>;
 
 export function AddTask(arg1:string,arg2:string):Promise<tasks.Task>;
+
+export function CompleteWorkout(arg1:string,arg2:number,arg3:string,arg4:number):Promise<Array<workouts.Cycle>>;
 
 export function DeleteEvent(arg1:string):Promise<void>;
 
@@ -35,12 +38,24 @@ export function ListHabits():Promise<Array<habits.Habit>>;
 
 export function ListTasks():Promise<Array<tasks.Task>>;
 
+export function ListWorkoutCycles():Promise<Array<workouts.Cycle>>;
+
 export function RenameHabit(arg1:string,arg2:string):Promise<habits.Habit>;
 
+export function ResetWorkouts():Promise<void>;
+
 export function SetTheme(arg1:string):Promise<settings.Settings>;
+
+export function SetupWorkouts(arg1:string,arg2:Record<string, number>):Promise<workouts.Cycle>;
 
 export function ToggleEventCompletion(arg1:string,arg2:time.Time):Promise<calendar.Event>;
 
 export function ToggleHabitCompletion(arg1:string,arg2:string):Promise<habits.Habit>;
 
 export function ToggleTask(arg1:string):Promise<tasks.Task>;
+
+export function UndoLastWorkout():Promise<Array<workouts.Cycle>>;
+
+export function UpdateWorkoutCycle(arg1:string,arg2:string,arg3:Record<string, number>):Promise<workouts.Cycle>;
+
+export function UpdateWorkoutLog(arg1:string,arg2:number,arg3:string,arg4:number):Promise<workouts.Cycle>;

@@ -402,3 +402,64 @@ export namespace time {
 
 }
 
+export namespace workouts {
+	
+	export class WorkoutLog {
+	    index: number;
+	    date: string;
+	    amrapReps: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new WorkoutLog(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.index = source["index"];
+	        this.date = source["date"];
+	        this.amrapReps = source["amrapReps"];
+	    }
+	}
+	export class Cycle {
+	    id: string;
+	    number: number;
+	    startDate: string;
+	    trainingMax: Record<string, number>;
+	    logs: WorkoutLog[];
+	    createdAt: time.Time;
+	
+	    static createFrom(source: any = {}) {
+	        return new Cycle(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.number = source["number"];
+	        this.startDate = source["startDate"];
+	        this.trainingMax = source["trainingMax"];
+	        this.logs = this.convertValues(source["logs"], WorkoutLog);
+	        this.createdAt = this.convertValues(source["createdAt"], time.Time);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+

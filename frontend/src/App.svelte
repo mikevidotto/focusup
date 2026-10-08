@@ -9,6 +9,7 @@
     import Resources from "./lib/components/ResourcesPage.svelte";
     import Habits from "./lib/components/HabitsPage.svelte";
     import CalendarPage from "./lib/components/CalendarPage.svelte";
+    import WorkoutsPage from "./lib/components/WorkoutsPage.svelte";
     //import NotesPage from "./lib/components/NotesPage.svelte";
     import ReminderPopup from "./lib/components/ReminderPopup.svelte";
 
@@ -98,8 +99,8 @@
     // page has registered activeWidgetKeyHandler (e.g. the Tasks page), or
     // is a no-op if nothing has.
     //
-    // h/l always cycle tabs here. Pages with their own 2D grid (currently
-    // just Calendar) opt into the same tabs<->grid scheme the dashboard
+    // h/l always cycle tabs here. Pages with their own 2D grid (Calendar,
+    // Notes, and the Health tab's workout grid) opt into the same tabs<->grid scheme the dashboard
     // uses: "j" hands off to mode "grid" (their own handler then owns
     // h/j/k/l — see handleKeyboard below), and until that happens, "k" is a
     // no-op rather than leaking into the page's handler (the dashboard
@@ -137,6 +138,11 @@
                     return;
                 }
 
+                if (activeTab === "health") {
+                    mode.set("grid");
+                    return;
+                }
+
                 break;
             }
 
@@ -145,6 +151,9 @@
                     return;
                 }
                 if (activeTab == "notes") {
+                    return;
+                }
+                if (activeTab === "health") {
                     return;
                 }
                 break;
@@ -237,6 +246,8 @@
             <Resources />
         {:else if activeTab === "habits"}
             <Habits />
+        {:else if activeTab === "health"}
+            <WorkoutsPage />
         {:else}
             <div class="page-placeholder">
                 <span class="eyebrow">

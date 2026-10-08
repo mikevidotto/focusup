@@ -13,6 +13,7 @@ import (
 	"focusup/internal/notifier"
 	"focusup/internal/settings"
 	"focusup/internal/tasks"
+	"focusup/internal/workouts"
 )
 
 // reminderDueEvent is the Wails runtime event name the frontend listens on
@@ -27,6 +28,7 @@ type App struct {
 	calendar    *calendar.Service
 	notifier    *notifier.Notifier
 	settings    *settings.Service
+	workouts    *workouts.Service
 }
 
 func NewApp() *App {
@@ -45,6 +47,11 @@ func NewApp() *App {
 		log.Fatalf("failed to initialize calendar storage: %v", err)
 	}
 
+	workoutService, err := workouts.NewService()
+	if err != nil {
+		log.Fatalf("failed to initialize workout storage: %v", err)
+	}
+
 	settingsService, err := settings.NewService()
 	if err != nil {
 		log.Fatalf("failed to initialize settings storage: %v", err)
@@ -56,6 +63,7 @@ func NewApp() *App {
 		habits:      habitService,
 		calendar:    calendarService,
 		settings:    settingsService,
+		workouts:    workoutService,
 	}
 
 	app.notifier = notifier.New(calendarService, func(reminder calendar.DueReminder) {
@@ -121,6 +129,37 @@ func (a *App) ToggleHabitCompletion(id, date string) (habits.Habit, error) {
 
 func (a *App) DeleteHabit(id string) error {
 	return a.habits.Delete(id)
+}
+
+func (a *App) ListWorkoutCycles() []workouts.Cycle {
+	return a.workouts.ListCycles()
+}
+
+// SetupWorkouts starts the 5/3/1 program from the lifter's true 1RMs.
+func (a *App) SetupWorkouts(startDate string, oneRepMax map[string]float64) (workouts.Cycle, error) {
+	return a.workouts.Setup(startDate, oneRepMax)
+}
+
+// CompleteWorkout logs the next workout; it returns every cycle because
+// finishing a cycle generates the next one.
+func (a *App) CompleteWorkout(cycleID string, index int, date string, amrapReps int) ([]workouts.Cycle, error) {
+	return a.workouts.CompleteWorkout(cycleID, index, date, amrapReps)
+}
+
+func (a *App) UpdateWorkoutCycle(cycleID, startDate string, trainingMax map[string]float64) (workouts.Cycle, error) {
+	return a.workouts.UpdateCycle(cycleID, startDate, trainingMax)
+}
+
+func (a *App) UpdateWorkoutLog(cycleID string, index int, date string, amrapReps int) (workouts.Cycle, error) {
+	return a.workouts.UpdateWorkoutLog(cycleID, index, date, amrapReps)
+}
+
+func (a *App) UndoLastWorkout() ([]workouts.Cycle, error) {
+	return a.workouts.UndoLastWorkout()
+}
+
+func (a *App) ResetWorkouts() error {
+	return a.workouts.Reset()
 }
 
 func (a *App) ListEvents() []calendar.Event {
