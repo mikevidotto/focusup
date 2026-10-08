@@ -44,6 +44,8 @@ body {
 
     --success: #738d75;
     --warning: #b39562;
+    --chart-1: #2aa894;
+    --chart-2: #c9783f;
 
     --muted-control: #555650;
     --glow: rgba(255, 255, 255, 0.025);
@@ -84,6 +86,8 @@ body {
 
     --success: #4c7a51;
     --warning: #946b2a;
+    --chart-1: #0a8571;
+    --chart-2: #b5602a;
 
     --muted-control: #6b6c66;
     --glow: rgba(255, 255, 255, 0.6);
@@ -709,14 +713,6 @@ kbd {
     white-space: nowrap;
 }
 
-.todo-priority {
-    flex-shrink: 0;
-    width: 14px;
-
-    font-size: 12px;
-    text-align: center;
-}
-
 .todo-completed-date {
     flex-shrink: 0;
 
@@ -985,22 +981,114 @@ kbd {
     gap: 12px;
 }
 
-.priority-picker {
-    flex-shrink: 0;
+/* GTD (TASKS + PROJECTS) */
 
-    padding: 8px 12px;
+.gtd-lists {
+    margin-bottom: 16px;
+
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.gtd-lists button {
+    padding: 8px 14px;
 
     border: 1px solid var(--border);
     background: transparent;
+    color: var(--text-soft);
 
+    font-family: var(--mono);
     font-size: 12px;
-    font-family: inherit;
 
     cursor: pointer;
 }
 
-.priority-picker:hover {
+.gtd-lists button + button {
+    border-left: 0;
+}
+
+.gtd-lists button:hover {
     background: var(--surface-hover);
+}
+
+.gtd-lists button.active {
+    border-color: var(--accent-soft);
+    background: var(--surface-selected);
+    color: var(--text);
+}
+
+.gtd-list-count {
+    margin-left: 6px;
+
+    color: var(--text-faint);
+    font-size: 11px;
+}
+
+.gtd-context-filter {
+    margin-bottom: 12px;
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.gtd-context {
+    flex-shrink: 0;
+
+    padding: 1px 6px;
+
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-soft);
+
+    font-family: var(--mono);
+    font-size: 11px;
+    text-decoration: none;
+}
+
+button.gtd-context {
+    cursor: pointer;
+}
+
+button.gtd-context.active {
+    border-color: var(--accent-soft);
+    color: var(--accent);
+}
+
+.gtd-project-tag {
+    flex-shrink: 0;
+    max-width: 160px;
+    overflow: hidden;
+
+    color: var(--accent);
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gtd-project-tag::before {
+    content: "▸ ";
+}
+
+.gtd-stalled {
+    flex-shrink: 0;
+
+    color: var(--warning);
+    font-size: 11px;
+}
+
+.gtd-picker {
+    margin: 12px 0;
+    padding: 10px 12px;
+
+    border: 1px solid var(--accent-soft);
+    background: var(--surface);
+}
+
+.gtd-project-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 /* CALENDAR PAGE */
@@ -1919,6 +2007,209 @@ kbd {
 .workouts-set-reps {
     font-family: var(--mono);
     font-variant-numeric: tabular-nums;
+}
+
+/* WORKOUT PROJECTIONS */
+
+.projections {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    text-align: left;
+}
+
+.projections-milestones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.projections-milestone {
+    min-width: 150px;
+}
+
+.projections-chart-card {
+    max-width: 860px;
+}
+
+.projections-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+
+    margin: 10px 0 8px;
+
+    color: var(--text-soft);
+    font-size: 11px;
+}
+
+.projections-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.projections-legend-note {
+    color: var(--text-faint);
+}
+
+.projections-swatch {
+    display: inline-block;
+    width: 16px;
+    height: 0;
+    border-top: 2px solid var(--chart-1);
+}
+
+.projections-swatch.pace {
+    border-top: 2px dashed var(--chart-2);
+}
+
+.projections-swatch.dot {
+    width: 8px;
+    height: 8px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--chart-2);
+}
+
+.projections-line {
+    fill: none;
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.projections-line.program {
+    stroke: var(--chart-1);
+}
+
+.projections-line.pace {
+    stroke: var(--chart-2);
+    stroke-dasharray: 6 4;
+}
+
+.projections-dot,
+.projections-marker {
+    stroke: var(--bg);
+    stroke-width: 2;
+}
+
+.projections-dot,
+.projections-marker.pace {
+    fill: var(--chart-2);
+}
+
+.projections-marker.program {
+    fill: var(--chart-1);
+}
+
+.projections-today {
+    stroke: var(--text-faint);
+    stroke-width: 1;
+    stroke-dasharray: 2 3;
+}
+
+.projections-crosshair {
+    stroke: var(--text-soft);
+    stroke-width: 1;
+}
+
+.projections-lookups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.projections-lookup {
+    flex: 1 1 320px;
+    max-width: 420px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.projections-result {
+    margin: 0;
+
+    color: var(--text-soft);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.projections-result strong {
+    color: var(--text);
+    font-family: var(--mono);
+    font-weight: 600;
+}
+
+.projections-table {
+    max-width: 860px;
+    border-collapse: collapse;
+
+    font-size: 12px;
+}
+
+.projections-table th {
+    padding: 4px 12px 6px 0;
+
+    color: var(--text-faint);
+    font-size: 10px;
+    font-weight: normal;
+    letter-spacing: 0.08em;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.projections-table td {
+    padding: 6px 12px 6px 0;
+
+    border-top: 1px solid var(--border-soft);
+
+    color: var(--text-soft);
+    font-variant-numeric: tabular-nums;
+    vertical-align: top;
+}
+
+.projections-table td small {
+    display: block;
+
+    color: var(--text-faint);
+    font-family: var(--mono);
+    font-size: 10px;
+}
+
+.projections-table tr.current td {
+    background: var(--surface);
+}
+
+.projections-table tr.highlight td {
+    background: var(--surface-selected);
+}
+
+.projections-table tr.highlight td:first-child {
+    box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.projections-table th:first-child,
+.projections-table td.projections-cycle {
+    padding-left: 8px;
+}
+
+.projections-table td.projections-cycle {
+    font-family: var(--mono);
+}
+
+.projections-table td.projections-cycle small {
+    display: inline;
+    margin-left: 6px;
+}
+
+.projections-value {
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
 }
 
 /* REMINDER POPUP */

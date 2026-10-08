@@ -175,3 +175,140 @@ export function isValidDateKey(key) {
 }
 
 export { toDateKey };
+
+// ---- projections ----
+// If the program is followed on schedule, every cycle adds a fixed amount
+// to each training max (mirrors internal/workouts TMIncrement) and starts
+// 28 days after the previous one (Mon of week 1 → Mon of the next week 1).
+
+export const TM_INCREMENT = { squat: 10, bench: 5, deadlift: 10, press: 5 };
+export const CYCLE_DAYS = 28;
+
+// Lifts that count toward the powerlifting total.
+export const TOTAL_LIFTS = ["squat", "bench", "deadlift"];
+
+export const PLATE_MILESTONES = [135, 225, 315, 405, 495, 585];
+export const TOTAL_MILESTONES = [1000, 1200, 1500];
+
+// The 1RM a training max stands for, since TM = 90% of 1RM.
+export function implied1RM(tm) {
+    return Math.round(tm / 0.9);
+}
+
+// When the cycle after this one should start: a rest gap after its last
+// workout, done or still scheduled. Missed days push this later, just
+// like they shift the rest of the cycle in schedule().
+export function nextCycleStart(cycle, today) {
+    const last = schedule(cycle, today).at(-1);
+    return addDays(last.status === "done" ? last.date : last.due, GAP_AFTER.press);
+}
+
+// The cycle `k` cycles after `latest` (k = 0 is `latest` itself, on its
+// real start date). `nextStart` is nextCycleStart(latest, today).
+export function projectedCycle(latest, nextStart, k) {
+    const trainingMax = Object.fromEntries(
+        LIFTS.map((lift) => [lift, latest.trainingMax[lift] + k * TM_INCREMENT[lift]]),
+    );
+    const implied = Object.fromEntries(LIFTS.map((lift) => [lift, implied1RM(trainingMax[lift])]));
+    const topSingle = Object.fromEntries(LIFTS.map((lift) => [lift, topSet(trainingMax[lift], 3).weight]));
+
+    return {
+        k,
+        number: latest.number + k,
+        start: k === 0 ? parseDateKey(latest.startDate) : addDays(nextStart, (k - 1) * CYCLE_DAYS),
+        trainingMax,
+        implied,
+        topSingle,
+        total: TOTAL_LIFTS.reduce((sum, lift) => sum + implied[lift], 0),
+    };
+}
+
+// The latest cycle plus the next `count` cycles.
+export function projectCycles(latest, today, count) {
+    const nextStart = nextCycleStart(latest, today);
+    return Array.from({ length: count + 1 }, (_, k) => projectedCycle(latest, nextStart, k));
+}
+
+// The projected cycle in effect on `date` (the latest one for any earlier date).
+export function projectionAt(latest, today, date) {
+    const nextStart = nextCycleStart(latest, today);
+    const k = date < nextStart ? 0 : Math.floor(daysBetween(nextStart, date) / CYCLE_DAYS) + 1;
+    return projectedCycle(latest, nextStart, k);
+}
+
+// The first projected cycle whose implied 1RM for `lift` (or the total,
+// when lift is "total") reaches `target`. Gives up after ~40 years.
+export function cycleToReach(latest, today, lift, target) {
+    const nextStart = nextCycleStart(latest, today);
+    for (let k = 0; k <= 520; k++) {
+        const c = projectedCycle(latest, nextStart, k);
+        if ((lift === "total" ? c.total : c.implied[lift]) >= target) {
+            return c;
+        }
+    }
+    return null;
+}
+
+// The next milestone above where `lift` (or "total") stands in the latest
+// cycle, and when it's reached; null once past the last one.
+export function nextMilestone(latest, today, lift) {
+    const current = lift === "total" ? projectedCycle(latest, null, 0).total : implied1RM(latest.trainingMax[lift]);
+    const target = (lift === "total" ? TOTAL_MILESTONES : PLATE_MILESTONES).find((m) => m > current);
+    if (!target) {
+        return null;
+    }
+    return { target, cycle: cycleToReach(latest, today, lift, target) };
+}
+
+// Chart series for one lift, each a list of { date, value, number }.
+// - program: the implied 1RM of every past cycle's TM, then the projection
+// - pace: starts from the most recent cycle with an AMRAP e1RM and adds the
+//   same increment per cycle, so it reflects how you're actually lifting
+// - actual: the best AMRAP e1RM logged in each cycle
+export function projectionSeries(cycles, rows, lift) {
+    const latest = cycles.at(-1);
+    const program = [
+        ...cycles.slice(0, -1).map((c) => ({
+            date: parseDateKey(c.startDate),
+            value: implied1RM(c.trainingMax[lift]),
+            number: c.number,
+        })),
+        ...rows.map((r) => ({ date: r.start, value: r.implied[lift], number: r.number })),
+    ];
+
+    const actual = cycles
+        .map((c) => ({ date: parseDateKey(c.startDate), value: bestEstimates(c)[lift], number: c.number }))
+        .filter((p) => p.value);
+
+    let pace = null;
+    const from = actual.at(-1);
+    if (from) {
+        pace = [
+            from,
+            ...rows
+                .filter((r) => r.number > from.number)
+                .map((r) => ({
+                    date: r.start,
+                    value: from.value + (r.number - from.number) * TM_INCREMENT[lift],
+                    number: r.number,
+                })),
+        ];
+    }
+
+    return { program, pace, actual };
+}
+
+export function formatLongDay(date) {
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+// "in 3 months", "in 2 weeks", "today", "now" — rough distance for labels.
+export function fromNow(date, today) {
+    const days = daysBetween(today, date);
+    if (days <= 0) return "now";
+    if (days < 14) return `in ${days} day${days === 1 ? "" : "s"}`;
+    if (days < 60) return `in ${Math.round(days / 7)} weeks`;
+    const months = Math.round(days / 30.44);
+    if (months < 24) return `in ${months} months`;
+    return `in ${(days / 365.25).toFixed(1)} years`;
+}

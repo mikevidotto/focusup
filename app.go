@@ -98,16 +98,59 @@ func (a *App) ListTasks() []tasks.Task {
 	return a.tasks.List()
 }
 
-func (a *App) AddTask(title, priority string) (tasks.Task, error) {
-	return a.tasks.Add(title, priority)
+// AddTask captures a task into the GTD inbox.
+func (a *App) AddTask(title string, contexts []string) (tasks.Task, error) {
+	return a.tasks.Add(title, contexts)
+}
+
+func (a *App) AddProjectTask(projectID, title string, contexts []string) (tasks.Task, error) {
+	return a.tasks.AddProjectTask(projectID, title, contexts)
 }
 
 func (a *App) ToggleTask(id string) (tasks.Task, error) {
 	return a.tasks.Toggle(id)
 }
 
+// MoveTask puts a task in another GTD list ("inbox", "next" or "someday").
+func (a *App) MoveTask(id, list string) (tasks.Task, error) {
+	return a.tasks.Move(id, list)
+}
+
+func (a *App) RenameTask(id, title string) (tasks.Task, error) {
+	return a.tasks.Rename(id, title)
+}
+
+func (a *App) SetTaskContexts(id string, contexts []string) (tasks.Task, error) {
+	return a.tasks.SetContexts(id, contexts)
+}
+
+// SetTaskProject links a task to a project; an empty projectID unlinks it.
+func (a *App) SetTaskProject(id, projectID string) (tasks.Task, error) {
+	return a.tasks.SetProject(id, projectID)
+}
+
 func (a *App) DeleteTask(id string) error {
 	return a.tasks.Delete(id)
+}
+
+func (a *App) ListProjects() []tasks.Project {
+	return a.tasks.ListProjects()
+}
+
+func (a *App) AddProject(title string) (tasks.Project, error) {
+	return a.tasks.AddProject(title)
+}
+
+func (a *App) RenameProject(id, title string) (tasks.Project, error) {
+	return a.tasks.RenameProject(id, title)
+}
+
+func (a *App) ToggleProject(id string) (tasks.Project, error) {
+	return a.tasks.ToggleProject(id)
+}
+
+func (a *App) DeleteProject(id string) error {
+	return a.tasks.DeleteProject(id)
 }
 
 func (a *App) ListHabits() []habits.Habit {

@@ -16,11 +16,14 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
   saves, esc cancels
 - e edit a done workout, c edit the cycle, u undo the last log
 - [ ] previous/next cycle, x x reset the whole program
+- p toggles the projections view (WorkoutProjections.svelte), which takes
+  h/l, +/-, d and g while it's showing; k, q or esc still go back to the tabs
 
 */
     import { onMount, onDestroy, tick } from "svelte";
     import { activeWidgetKeyHandler, mode } from "../stores/keyboard.js";
     import { startOfDay } from "../calendarGrid.js";
+    import WorkoutProjections from "./WorkoutProjections.svelte";
     import {
         LIFTS,
         LIFT_META,
@@ -60,6 +63,10 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
     let loading = true;
     let error = null;
     let pendingReset = false;
+
+    // "program" (the week grid) | "projections"
+    let view = "program";
+    let projectionsEl;
 
     // null | "log" | "edit" | "cycle"
     let formMode = null;
@@ -281,6 +288,23 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
             }
         }
 
+        if (event.key === "p") {
+            event.preventDefault();
+            view = view === "program" ? "projections" : "program";
+            return;
+        }
+
+        if (view === "projections") {
+            if (projectionsEl?.handleKey(event)) {
+                return;
+            }
+            if (["k", "q", "Escape"].includes(event.key)) {
+                event.preventDefault();
+                mode.set("tabs");
+            }
+            return;
+        }
+
         switch (event.key) {
             case "j":
                 event.preventDefault();
@@ -423,12 +447,20 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
         </form>
     {:else}
         <div class="tasks-hint">
-            {#if navigating}
+            {#if navigating && view === "projections"}
+                <kbd>h</kbd><kbd>l</kbd> lift
+                <kbd>+</kbd><kbd>-</kbd> horizon
+                <kbd>d</kbd> by date
+                <kbd>g</kbd> goal
+                <kbd>p</kbd> program
+                <kbd>q</kbd> back
+            {:else if navigating}
                 <kbd>h</kbd><kbd>j</kbd><kbd>k</kbd><kbd>l</kbd> move
                 <kbd>enter</kbd> log / edit
                 <kbd>c</kbd> edit cycle
                 <kbd>u</kbd> undo
                 <kbd>[</kbd><kbd>]</kbd> cycle
+                <kbd>p</kbd> projections
                 <kbd>x</kbd> reset
                 <kbd>q</kbd> back
             {:else}
@@ -485,150 +517,154 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
             </form>
         {/if}
 
-        <div class="workouts-layout">
-            <div class="workouts-grid">
-                <div class="workouts-grid-row workouts-grid-head">
-                    <span></span>
-                    {#each LIFTS as lift}
-                        <span>{LIFT_META[lift].label}</span>
+        {#if view === "projections"}
+            <WorkoutProjections bind:this={projectionsEl} {cycles} {today} />
+        {:else}
+            <div class="workouts-layout">
+                <div class="workouts-grid">
+                    <div class="workouts-grid-row workouts-grid-head">
+                        <span></span>
+                        {#each LIFTS as lift}
+                            <span>{LIFT_META[lift].label}</span>
+                        {/each}
+                    </div>
+
+                    {#each [1, 2, 3, 4] as week}
+                        <div class="workouts-grid-row">
+                            <span class="workouts-week-label">
+                                Week {week}
+                                <small>{WEEKS[week].label}</small>
+                            </span>
+
+                            {#each LIFTS as lift, l}
+                                {@const index = (week - 1) * 4 + l}
+                                {@const status = plan[index]}
+                                {@const log = cycle.logs[index]}
+                                {@const top = topSet(cycle.trainingMax[lift], week)}
+                                <div
+                                    class="workouts-cell"
+                                    class:done={status?.status === "done"}
+                                    class:next={status?.status === "next"}
+                                    class:cursor={navigating && index === cursor}
+                                >
+                                    <span class="workouts-cell-top">{setLabel(top)}</span>
+                                    {#if log}
+                                        <span class="workouts-cell-date"
+                                            >✓ {formatDay(status.date)}</span
+                                        >
+                                        {#if workoutEstimate(cycle, log)}
+                                            <span class="workouts-cell-note"
+                                                >{log.amrapReps} reps → {workoutEstimate(cycle, log)}</span
+                                            >
+                                        {/if}
+                                    {:else if status}
+                                        <span class="workouts-cell-date"
+                                            >{formatDay(status.due)}</span
+                                        >
+                                        {#if status.status === "next"}
+                                            <span class="workouts-cell-note">next up</span>
+                                        {/if}
+                                    {/if}
+                                </div>
+                            {/each}
+                        </div>
                     {/each}
                 </div>
 
-                {#each [1, 2, 3, 4] as week}
-                    <div class="workouts-grid-row">
-                        <span class="workouts-week-label">
-                            Week {week}
-                            <small>{WEEKS[week].label}</small>
-                        </span>
+                <section class="workouts-detail">
+                    <span class="eyebrow">
+                        {canLog ? "NEXT UP" : selectedLog ? "DONE" : "PLANNED"}
+                    </span>
+                    <h2>
+                        {LIFT_META[selected.lift].label}
+                        <small>Week {selected.week} · {WEEKS[selected.week].label}</small>
+                    </h2>
 
-                        {#each LIFTS as lift, l}
-                            {@const index = (week - 1) * 4 + l}
-                            {@const status = plan[index]}
-                            {@const log = cycle.logs[index]}
-                            {@const top = topSet(cycle.trainingMax[lift], week)}
-                            <div
-                                class="workouts-cell"
-                                class:done={status?.status === "done"}
-                                class:next={status?.status === "next"}
-                                class:cursor={navigating && index === cursor}
-                            >
-                                <span class="workouts-cell-top">{setLabel(top)}</span>
-                                {#if log}
-                                    <span class="workouts-cell-date"
-                                        >✓ {formatDay(status.date)}</span
-                                    >
-                                    {#if workoutEstimate(cycle, log)}
-                                        <span class="workouts-cell-note"
-                                            >{log.amrapReps} reps → {workoutEstimate(cycle, log)}</span
-                                        >
-                                    {/if}
-                                {:else if status}
-                                    <span class="workouts-cell-date"
-                                        >{formatDay(status.due)}</span
-                                    >
-                                    {#if status.status === "next"}
-                                        <span class="workouts-cell-note">next up</span>
-                                    {/if}
-                                {/if}
-                            </div>
-                        {/each}
-                    </div>
-                {/each}
-            </div>
-
-            <section class="workouts-detail">
-                <span class="eyebrow">
-                    {canLog ? "NEXT UP" : selectedLog ? "DONE" : "PLANNED"}
-                </span>
-                <h2>
-                    {LIFT_META[selected.lift].label}
-                    <small>Week {selected.week} · {WEEKS[selected.week].label}</small>
-                </h2>
-
-                <div class="workouts-detail-status">
-                    {#if selectedLog}
-                        Done {formatDay(selectedStatus.date)}
-                        {#if workoutEstimate(cycle, selectedLog)}
-                            · {selectedLog.amrapReps} reps on the last set · e1RM
-                            {workoutEstimate(cycle, selectedLog)} lb
-                        {/if}
-                    {:else if selectedStatus}
-                        Due {formatDay(selectedStatus.due)} ({dueLabel(selectedStatus.due, today)})
-                    {/if}
-                </div>
-
-                {#if selectedStatus?.lateDays}
-                    <p class="workouts-warning">
-                        {selectedStatus.lateDays} day{selectedStatus.lateDays === 1 ? "" : "s"}
-                        behind plan. The rest of the cycle has shifted to keep your
-                        rest days.
-                    </p>
-                {/if}
-
-                <table class="workouts-sets">
-                    <tbody>
-                        {#each selectedSets as set, i}
-                            {#if set.kind !== "volume" || selectedSets[i - 1]?.kind !== "volume"}
-                                <tr class={set.kind} class:amrap={set.amrap}>
-                                    <td class="workouts-set-kind">
-                                        {set.kind === "warmup"
-                                            ? "Warm-up"
-                                            : set.kind === "main"
-                                              ? "Work"
-                                              : "5 × 10"}
-                                    </td>
-                                    <td class="workouts-set-pct">{set.pct}%</td>
-                                    <td class="workouts-set-weight">{set.weight} lb</td>
-                                    <td class="workouts-set-reps">
-                                        {set.kind === "volume"
-                                            ? "5 sets × 10"
-                                            : `× ${set.reps}${set.amrap ? "+" : ""}`}
-                                    </td>
-                                </tr>
+                    <div class="workouts-detail-status">
+                        {#if selectedLog}
+                            Done {formatDay(selectedStatus.date)}
+                            {#if workoutEstimate(cycle, selectedLog)}
+                                · {selectedLog.amrapReps} reps on the last set · e1RM
+                                {workoutEstimate(cycle, selectedLog)} lb
                             {/if}
-                        {/each}
-                    </tbody>
-                </table>
-
-                {#if formMode === "log" || formMode === "edit"}
-                    <!-- svelte-ignore a11y_no_noninteractive_element_interactions (esc cancels the form) -->
-                    <form
-                        class="workouts-form"
-                        bind:this={formEl}
-                        on:submit|preventDefault={submitForm}
-                        on:keydown={onFormKeydown}
-                    >
-                        <label class="workouts-field">
-                            <span>Date</span>
-                            <input class="workouts-input" bind:value={formDate} placeholder="YYYY-MM-DD" />
-                        </label>
-                        {#if !isDeload(cursor)}
-                            <label class="workouts-field">
-                                <span>Reps on last set</span>
-                                <input
-                                    class="workouts-input"
-                                    type="number"
-                                    min="0"
-                                    data-autofocus
-                                    bind:value={formReps}
-                                />
-                                <span class="workouts-field-note"
-                                    >{liveEstimate ? `e1RM ${liveEstimate} lb` : ""}</span
-                                >
-                            </label>
+                        {:else if selectedStatus}
+                            Due {formatDay(selectedStatus.due)} ({dueLabel(selectedStatus.due, today)})
                         {/if}
-                        <button type="submit" class="workouts-button"
-                            >{formMode === "log" ? "Log workout" : "Save"}</button
+                    </div>
+
+                    {#if selectedStatus?.lateDays}
+                        <p class="workouts-warning">
+                            {selectedStatus.lateDays} day{selectedStatus.lateDays === 1 ? "" : "s"}
+                            behind plan. The rest of the cycle has shifted to keep your
+                            rest days.
+                        </p>
+                    {/if}
+
+                    <table class="workouts-sets">
+                        <tbody>
+                            {#each selectedSets as set, i}
+                                {#if set.kind !== "volume" || selectedSets[i - 1]?.kind !== "volume"}
+                                    <tr class={set.kind} class:amrap={set.amrap}>
+                                        <td class="workouts-set-kind">
+                                            {set.kind === "warmup"
+                                                ? "Warm-up"
+                                                : set.kind === "main"
+                                                  ? "Work"
+                                                  : "5 × 10"}
+                                        </td>
+                                        <td class="workouts-set-pct">{set.pct}%</td>
+                                        <td class="workouts-set-weight">{set.weight} lb</td>
+                                        <td class="workouts-set-reps">
+                                            {set.kind === "volume"
+                                                ? "5 sets × 10"
+                                                : `× ${set.reps}${set.amrap ? "+" : ""}`}
+                                        </td>
+                                    </tr>
+                                {/if}
+                            {/each}
+                        </tbody>
+                    </table>
+
+                    {#if formMode === "log" || formMode === "edit"}
+                        <!-- svelte-ignore a11y_no_noninteractive_element_interactions (esc cancels the form) -->
+                        <form
+                            class="workouts-form"
+                            bind:this={formEl}
+                            on:submit|preventDefault={submitForm}
+                            on:keydown={onFormKeydown}
                         >
-                        <span class="workouts-form-hint">enter save • esc cancel</span>
-                    </form>
-                {:else if canLog}
-                    <p class="workouts-detail-hint">Press <kbd>enter</kbd> to log this workout.</p>
-                {:else if selectedLog}
-                    <p class="workouts-detail-hint">Press <kbd>e</kbd> to edit this workout.</p>
-                {/if}
-            </section>
-        </div>
+                            <label class="workouts-field">
+                                <span>Date</span>
+                                <input class="workouts-input" bind:value={formDate} placeholder="YYYY-MM-DD" />
+                            </label>
+                            {#if !isDeload(cursor)}
+                                <label class="workouts-field">
+                                    <span>Reps on last set</span>
+                                    <input
+                                        class="workouts-input"
+                                        type="number"
+                                        min="0"
+                                        data-autofocus
+                                        bind:value={formReps}
+                                    />
+                                    <span class="workouts-field-note"
+                                        >{liveEstimate ? `e1RM ${liveEstimate} lb` : ""}</span
+                                    >
+                                </label>
+                            {/if}
+                            <button type="submit" class="workouts-button"
+                                >{formMode === "log" ? "Log workout" : "Save"}</button
+                            >
+                            <span class="workouts-form-hint">enter save • esc cancel</span>
+                        </form>
+                    {:else if canLog}
+                        <p class="workouts-detail-hint">Press <kbd>enter</kbd> to log this workout.</p>
+                    {:else if selectedLog}
+                        <p class="workouts-detail-hint">Press <kbd>e</kbd> to edit this workout.</p>
+                    {/if}
+                </section>
+            </div>
+        {/if}
     {/if}
 
     {#if error}

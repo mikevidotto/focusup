@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
 
     import { activeWidgetKeyHandler } from "../../stores/keyboard.js";
-    import { PRIORITY_META, splitTasks, formatCompletedDate } from "../../taskDisplay.js";
+    import { splitTasks, formatCompletedDate, countByList } from "../../taskDisplay.js";
     import { ListTasks, ToggleTask } from "../../../../wailsjs/go/main/App.js";
 
     export let focused = false;
@@ -25,7 +25,11 @@
         }
     });
 
-    $: ({ active, completed } = splitTasks(tasks));
+    // Only next actions belong on the dashboard; the inbox is processed on
+    // the Tasks page, so it just shows up as a count here.
+    $: counts = countByList(tasks);
+    $: ({ active: open, completed } = splitTasks(tasks));
+    $: active = open.filter(t => t.list === "next");
     $: visibleActive = active.slice(0, MAX_ACTIVE_VISIBLE);
     $: hiddenActiveCount = active.length - visibleActive.length;
     $: visibleCompleted = completed.slice(0, MAX_COMPLETED_VISIBLE);
@@ -81,7 +85,7 @@
 <div class="todo-widget">
     <header class="todo-header">
         <span class="todo-header-title">Tasks</span>
-        <span class="todo-header-count">{active.length} active • {tasks.length} total</span>
+        <span class="todo-header-count">{counts.next} next • {counts.inbox} in inbox</span>
     </header>
 
     <div class="todo-body">
@@ -90,10 +94,10 @@
                 <span>…</span>
                 <p>Loading tasks</p>
             </div>
-        {:else if tasks.length === 0}
+        {:else if active.length === 0 && completed.length === 0}
             <div class="empty-widget">
                 <span>空</span>
-                <p>No tasks yet — add some on the Tasks page</p>
+                <p>No next actions — process your inbox on the Tasks page</p>
             </div>
         {:else}
             <ul class="todo-list">
@@ -102,13 +106,9 @@
                     <li class="todo-item" class:cursor={focused && index === cursor}>
                         <span class="todo-mark">☐</span>
                         <span class="todo-title">{task.title}</span>
-                        <span
-                            class="todo-priority"
-                            style="color: {PRIORITY_META[task.priority].color}"
-                            title="{PRIORITY_META[task.priority].label} priority"
-                        >
-                            {PRIORITY_META[task.priority].icon}
-                        </span>
+                        {#each task.contexts as context}
+                            <span class="gtd-context">@{context}</span>
+                        {/each}
                     </li>
                 {/each}
 

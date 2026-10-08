@@ -194,9 +194,6 @@
                         >
                         <span
                             class="calendar-widget-dot"
-                            class:visible={indicator !== null}
-                            class:important={indicator === "important"}
-                            class:done={indicator === "done"}
                         ></span>
                     </div>
                 {/each}

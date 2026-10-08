@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-func datafilepath() (string, error) {
+func datadir() (string, error) {
 	dir, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
@@ -17,28 +17,31 @@ func datafilepath() (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(appdir, "tasks.json"), nil
+	return appdir, nil
 }
 
-func load(path string) ([]Task, error) {
+func load[T any](path string) ([]T, error) {
 	data, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
-		return []Task{}, nil
+		return []T{}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	var loaded []Task
+	var loaded []T
 	if err := json.Unmarshal(data, &loaded); err != nil {
 		return nil, err
+	}
+	if loaded == nil {
+		loaded = []T{}
 	}
 
 	return loaded, nil
 }
 
-func save(path string, tasks []Task) error {
-	data, err := json.MarshalIndent(tasks, "", "  ")
+func save[T any](path string, items []T) error {
+	data, err := json.MarshalIndent(items, "", "  ")
 	if err != nil {
 		return err
 	}

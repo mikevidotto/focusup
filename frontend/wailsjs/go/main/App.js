@@ -10,6 +10,14 @@ export function AddHabit(arg1) {
   return window['go']['main']['App']['AddHabit'](arg1);
 }
 
+export function AddProject(arg1) {
+  return window['go']['main']['App']['AddProject'](arg1);
+}
+
+export function AddProjectTask(arg1, arg2, arg3) {
+  return window['go']['main']['App']['AddProjectTask'](arg1, arg2, arg3);
+}
+
 export function AddReminder(arg1, arg2) {
   return window['go']['main']['App']['AddReminder'](arg1, arg2);
 }
@@ -28,6 +36,10 @@ export function DeleteEvent(arg1) {
 
 export function DeleteHabit(arg1) {
   return window['go']['main']['App']['DeleteHabit'](arg1);
+}
+
+export function DeleteProject(arg1) {
+  return window['go']['main']['App']['DeleteProject'](arg1);
 }
 
 export function DeleteTask(arg1) {
@@ -58,6 +70,10 @@ export function ListHabits() {
   return window['go']['main']['App']['ListHabits']();
 }
 
+export function ListProjects() {
+  return window['go']['main']['App']['ListProjects']();
+}
+
 export function ListTasks() {
   return window['go']['main']['App']['ListTasks']();
 }
@@ -66,12 +82,32 @@ export function ListWorkoutCycles() {
   return window['go']['main']['App']['ListWorkoutCycles']();
 }
 
+export function MoveTask(arg1, arg2) {
+  return window['go']['main']['App']['MoveTask'](arg1, arg2);
+}
+
 export function RenameHabit(arg1, arg2) {
   return window['go']['main']['App']['RenameHabit'](arg1, arg2);
 }
 
+export function RenameProject(arg1, arg2) {
+  return window['go']['main']['App']['RenameProject'](arg1, arg2);
+}
+
+export function RenameTask(arg1, arg2) {
+  return window['go']['main']['App']['RenameTask'](arg1, arg2);
+}
+
 export function ResetWorkouts() {
   return window['go']['main']['App']['ResetWorkouts']();
+}
+
+export function SetTaskContexts(arg1, arg2) {
+  return window['go']['main']['App']['SetTaskContexts'](arg1, arg2);
+}
+
+export function SetTaskProject(arg1, arg2) {
+  return window['go']['main']['App']['SetTaskProject'](arg1, arg2);
 }
 
 export function SetTheme(arg1) {
@@ -88,6 +124,10 @@ export function ToggleEventCompletion(arg1, arg2) {
 
 export function ToggleHabitCompletion(arg1, arg2) {
   return window['go']['main']['App']['ToggleHabitCompletion'](arg1, arg2);
+}
+
+export function ToggleProject(arg1) {
+  return window['go']['main']['App']['ToggleProject'](arg1);
 }
 
 export function ToggleTask(arg1) {

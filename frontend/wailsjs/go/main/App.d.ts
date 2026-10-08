@@ -12,15 +12,21 @@ export function AddEvent(arg1:string,arg2:string,arg3:string,arg4:time.Time,arg5
 
 export function AddHabit(arg1:string):Promise<habits.Habit>;
 
+export function AddProject(arg1:string):Promise<tasks.Project>;
+
+export function AddProjectTask(arg1:string,arg2:string,arg3:Array<string>):Promise<tasks.Task>;
+
 export function AddReminder(arg1:string,arg2:number):Promise<calendar.Event>;
 
-export function AddTask(arg1:string,arg2:string):Promise<tasks.Task>;
+export function AddTask(arg1:string,arg2:Array<string>):Promise<tasks.Task>;
 
 export function CompleteWorkout(arg1:string,arg2:number,arg3:string,arg4:number):Promise<Array<workouts.Cycle>>;
 
 export function DeleteEvent(arg1:string):Promise<void>;
 
 export function DeleteHabit(arg1:string):Promise<void>;
+
+export function DeleteProject(arg1:string):Promise<void>;
 
 export function DeleteTask(arg1:string):Promise<void>;
 
@@ -36,13 +42,25 @@ export function ListEvents():Promise<Array<calendar.Event>>;
 
 export function ListHabits():Promise<Array<habits.Habit>>;
 
+export function ListProjects():Promise<Array<tasks.Project>>;
+
 export function ListTasks():Promise<Array<tasks.Task>>;
 
 export function ListWorkoutCycles():Promise<Array<workouts.Cycle>>;
 
+export function MoveTask(arg1:string,arg2:string):Promise<tasks.Task>;
+
 export function RenameHabit(arg1:string,arg2:string):Promise<habits.Habit>;
 
+export function RenameProject(arg1:string,arg2:string):Promise<tasks.Project>;
+
+export function RenameTask(arg1:string,arg2:string):Promise<tasks.Task>;
+
 export function ResetWorkouts():Promise<void>;
+
+export function SetTaskContexts(arg1:string,arg2:Array<string>):Promise<tasks.Task>;
+
+export function SetTaskProject(arg1:string,arg2:string):Promise<tasks.Task>;
 
 export function SetTheme(arg1:string):Promise<settings.Settings>;
 
@@ -51,6 +69,8 @@ export function SetupWorkouts(arg1:string,arg2:Record<string, number>):Promise<w
 export function ToggleEventCompletion(arg1:string,arg2:time.Time):Promise<calendar.Event>;
 
 export function ToggleHabitCompletion(arg1:string,arg2:string):Promise<habits.Habit>;
+
+export function ToggleProject(arg1:string):Promise<tasks.Project>;
 
 export function ToggleTask(arg1:string):Promise<tasks.Task>;
 

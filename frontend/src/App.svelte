@@ -6,6 +6,7 @@
     import TabBar from "./lib/components/TabBar.svelte";
     import Dashboard from "./lib/components/Dashboard.svelte";
     import TasksPage from "./lib/components/TasksPage.svelte";
+    import ProjectsPage from "./lib/components/ProjectsPage.svelte";
     import Resources from "./lib/components/ResourcesPage.svelte";
     import Habits from "./lib/components/HabitsPage.svelte";
     import CalendarPage from "./lib/components/CalendarPage.svelte";
@@ -240,6 +241,8 @@
             <Dashboard />
         {:else if activeTab === "tasks"}
             <TasksPage />
+        {:else if activeTab === "projects"}
+            <ProjectsPage />
         {:else if activeTab === "calendar"}
             <CalendarPage />
         {:else if activeTab === "learning"}
