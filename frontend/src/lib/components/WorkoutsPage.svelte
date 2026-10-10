@@ -12,18 +12,20 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
 - from the tab bar, j enters the workout grid (keyboard mode "grid")
 - j/k move down/up between weeks, h/l move left/right between the lifts
   of that week; k on week 1, q or esc hand the keyboard back to the tabs
-- enter logs the next workout (or edits a done one); enter in the form
-  saves, esc cancels
+- enter logs the next workout (or edits a done one). Forms work like
+  every form in the app (KeyForm.svelte): j/k fields, enter edit, q/esc
+  back; the log form starts out typing the reps
 - e edit a done workout, c edit the cycle, u undo the last log
 - [ ] previous/next cycle, x x reset the whole program
 - p toggles the projections view (WorkoutProjections.svelte), which takes
   h/l, +/-, d and g while it's showing; k, q or esc still go back to the tabs
 
 */
-    import { onMount, onDestroy, tick } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { activeWidgetKeyHandler, mode } from "../stores/keyboard.js";
     import { startOfDay } from "../calendarGrid.js";
     import WorkoutProjections from "./WorkoutProjections.svelte";
+    import KeyForm from "./KeyForm.svelte";
     import {
         LIFTS,
         LIFT_META,
@@ -70,15 +72,14 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
 
     // null | "log" | "edit" | "cycle"
     let formMode = null;
-    let formEl;
-    let formDate = todayKey;
-    let formReps = "";
-    let cycleStart = "";
-    let cycleTM = {};
+    let formRef;
+    let formValues = { date: todayKey, reps: "" };
+    // { start, <lift>: training max, ... }
+    let cycleValues = {};
 
-    let setupStart = todayKey;
-    let setupMax = { squat: "", bench: "", deadlift: "", press: "" };
-    let setupEl;
+    // { start, <lift>: one-rep max, ... }
+    let setupValues = { start: todayKey, squat: "", bench: "", deadlift: "", press: "" };
+    let setupRef;
 
     onMount(async () => {
         try {
@@ -124,57 +125,82 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
     $: canLog = isLatest && cursor === doneCount && doneCount < WORKOUTS_PER_CYCLE;
     $: liveEstimate =
         cycle && !isDeload(cursor)
-            ? estimated1RM(topSet(cycle.trainingMax[selected.lift], selected.week).weight, Number(formReps))
+            ? estimated1RM(topSet(cycle.trainingMax[selected.lift], selected.week).weight, Number(formValues.reps))
             : null;
 
     // ---- setup ----
     $: setupTMs = Object.fromEntries(
-        LIFTS.map((lift) => [lift, Number(setupMax[lift]) > 0 ? trainingMaxFrom1RM(Number(setupMax[lift])) : null]),
+        LIFTS.map((lift) => [lift, Number(setupValues[lift]) > 0 ? trainingMaxFrom1RM(Number(setupValues[lift])) : null]),
     );
 
-    async function submitSetup() {
-        if (!isValidDateKey(setupStart)) {
-            error = "Start date must be YYYY-MM-DD";
-            return;
+    $: setupRows = [
+        { key: "start", type: "text", label: "Start date", placeholder: "YYYY-MM-DD" },
+        ...LIFTS.map((lift) => ({
+            key: lift,
+            type: "number",
+            label: `${LIFT_META[lift].label} 1RM`,
+            placeholder: "lb",
+            note: setupTMs[lift] ? `TM ${setupTMs[lift]} lb` : "",
+        })),
+    ];
+
+    // Form submit handlers throw on invalid input; KeyForm shows the
+    // message under the form and keeps it open.
+    async function submitSetup(values) {
+        if (!isValidDateKey(values.start)) {
+            throw new Error("Start date must be YYYY-MM-DD");
         }
-        if (LIFTS.some((lift) => !(Number(setupMax[lift]) > 0))) {
-            error = "Enter a 1RM for every lift";
-            return;
+        if (LIFTS.some((lift) => !(Number(values[lift]) > 0))) {
+            throw new Error("Enter a 1RM for every lift");
         }
 
-        try {
-            const oneRepMax = Object.fromEntries(LIFTS.map((lift) => [lift, Number(setupMax[lift])]));
-            const created = await SetupWorkouts(setupStart, oneRepMax);
-            setCycles([created]);
-            error = null;
-            document.activeElement?.blur();
-        } catch (e) {
-            error = String(e);
-        }
+        const oneRepMax = Object.fromEntries(LIFTS.map((lift) => [lift, Number(values[lift])]));
+        setCycles([await SetupWorkouts(values.start, oneRepMax)]);
+        error = null;
     }
 
     // ---- workout / cycle forms ----
-    async function openForm(mode) {
+    $: logRows = [
+        { key: "date", type: "text", label: "Date", placeholder: "YYYY-MM-DD" },
+        ...(cycle && isDeload(cursor)
+            ? []
+            : [
+                  {
+                      key: "reps",
+                      type: "number",
+                      label: "Reps on last set",
+                      note: liveEstimate ? `e1RM ${liveEstimate} lb` : "",
+                  },
+              ]),
+    ];
+
+    $: cycleRows = [
+        { key: "start", type: "text", label: "Start date", placeholder: "YYYY-MM-DD" },
+        ...LIFTS.map((lift) => ({
+            key: lift,
+            type: "number",
+            label: `${LIFT_META[lift].label} TM`,
+            suffix: "lb",
+        })),
+    ];
+
+    function openForm(mode) {
         formMode = mode;
         error = null;
 
         if (mode === "log") {
-            formDate = todayKey;
-            formReps = "";
+            formValues = { date: todayKey, reps: "" };
         } else if (mode === "edit") {
-            formDate = selectedLog.date;
-            formReps = isDeload(cursor) ? "" : String(selectedLog.amrapReps);
+            formValues = {
+                date: selectedLog.date,
+                reps: isDeload(cursor) ? "" : String(selectedLog.amrapReps),
+            };
         } else if (mode === "cycle") {
-            cycleStart = cycle.startDate;
-            cycleTM = { ...cycle.trainingMax };
+            cycleValues = {
+                start: cycle.startDate,
+                ...Object.fromEntries(LIFTS.map((lift) => [lift, String(cycle.trainingMax[lift])])),
+            };
         }
-
-        await tick();
-        // Focus reps when there are reps to enter, otherwise the first field.
-        const target =
-            formEl?.querySelector("input[data-autofocus]") ?? formEl?.querySelector("input");
-        target?.focus();
-        target?.select();
     }
 
     function closeForm() {
@@ -182,59 +208,36 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
         document.activeElement?.blur();
     }
 
-    function onFormKeydown(event) {
-        if (event.key === "Escape") {
-            event.preventDefault();
-            closeForm();
+    async function submitForm(values) {
+        if (!isValidDateKey(values.date)) {
+            throw new Error("Date must be YYYY-MM-DD");
         }
-    }
-
-    async function submitForm() {
-        if (formMode === "cycle") {
-            return submitCycle();
-        }
-
-        if (!isValidDateKey(formDate)) {
-            error = "Date must be YYYY-MM-DD";
-            return;
-        }
-        const reps = isDeload(cursor) ? 0 : Number(formReps || 0);
+        const reps = isDeload(cursor) ? 0 : Number(values.reps || 0);
         if (!Number.isInteger(reps) || reps < 0) {
-            error = "Reps must be a whole number";
-            return;
+            throw new Error("Reps must be a whole number");
         }
 
-        try {
-            if (formMode === "log") {
-                setCycles(await CompleteWorkout(cycle.id, cursor, formDate, reps));
-            } else {
-                replaceCycle(await UpdateWorkoutLog(cycle.id, cursor, formDate, reps));
-            }
-            error = null;
-            closeForm();
-        } catch (e) {
-            error = String(e);
+        if (formMode === "log") {
+            setCycles(await CompleteWorkout(cycle.id, cursor, values.date, reps));
+        } else {
+            replaceCycle(await UpdateWorkoutLog(cycle.id, cursor, values.date, reps));
         }
+        error = null;
+        closeForm();
     }
 
-    async function submitCycle() {
-        if (!isValidDateKey(cycleStart)) {
-            error = "Start date must be YYYY-MM-DD";
-            return;
+    async function submitCycle(values) {
+        if (!isValidDateKey(values.start)) {
+            throw new Error("Start date must be YYYY-MM-DD");
         }
-        const tm = Object.fromEntries(LIFTS.map((lift) => [lift, Number(cycleTM[lift])]));
+        const tm = Object.fromEntries(LIFTS.map((lift) => [lift, Number(values[lift])]));
         if (LIFTS.some((lift) => !(tm[lift] > 0))) {
-            error = "Every training max must be greater than 0";
-            return;
+            throw new Error("Every training max must be greater than 0");
         }
 
-        try {
-            replaceCycle(await UpdateWorkoutCycle(cycle.id, cycleStart, tm));
-            error = null;
-            closeForm();
-        } catch (e) {
-            error = String(e);
-        }
+        replaceCycle(await UpdateWorkoutCycle(cycle.id, values.start, tm));
+        error = null;
+        closeForm();
     }
 
     async function undo() {
@@ -258,18 +261,21 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
 
     function handleKey(event) {
         if (formMode) {
+            formRef?.handleKey(event);
             return;
         }
 
-        // Before setup, enter jumps into the setup form. It isn't focused
-        // on mount because focused inputs swallow the tab shortcuts.
+        // Before setup, the setup form takes the keyboard once the page has
+        // it (enter or j from the tab bar); q/esc in the form hand it back.
         if (!cycle) {
-            if (event.key === "Enter" && !loading) {
+            if (loading) {
+                return;
+            }
+            if (navigating) {
+                setupRef?.handleKey(event);
+            } else if (event.key === "Enter") {
                 event.preventDefault();
-                setupEl?.querySelector("input")?.focus();
-            } else if (navigating && ["k", "q", "Escape"].includes(event.key)) {
-                event.preventDefault();
-                mode.set("tabs");
+                mode.set("grid");
             }
             return;
         }
@@ -407,44 +413,25 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
     {#if loading}
         <p>Loading program…</p>
     {:else if !cycle}
-        <!-- svelte-ignore a11y_no_noninteractive_element_interactions (esc cancels the form) -->
-        <form
-            class="workouts-setup"
-            bind:this={setupEl}
-            on:submit|preventDefault={submitSetup}
-            on:keydown={(e) => e.key === "Escape" && document.activeElement?.blur()}
-        >
+        <div class="workouts-setup">
             <p class="workouts-setup-intro">
                 Enter your current one-rep max for each lift. Training maxes are
                 90% of it, and every weight in the program is worked out from
-                those. Press <kbd>enter</kbd> to start typing, <kbd>esc</kbd> to leave
-                the form.
+                those. Press <kbd>enter</kbd> to start, <kbd>j</kbd>/<kbd>k</kbd> to
+                move between fields, <kbd>enter</kbd> to type a value and
+                <kbd>q</kbd> to leave the form.
             </p>
 
-            <label class="workouts-field">
-                <span>Start date</span>
-                <input class="workouts-input" bind:value={setupStart} placeholder="YYYY-MM-DD" />
-            </label>
-
-            {#each LIFTS as lift}
-                <label class="workouts-field">
-                    <span>{LIFT_META[lift].label} 1RM</span>
-                    <input
-                        class="workouts-input"
-                        type="number"
-                        min="0"
-                        step="5"
-                        bind:value={setupMax[lift]}
-                        placeholder="lb"
-                    />
-                    <span class="workouts-field-note"
-                        >{setupTMs[lift] ? `TM ${setupTMs[lift]} lb` : ""}</span
-                    >
-                </label>
-            {/each}
-
-            <button type="submit" class="workouts-button">Start program</button>
-        </form>
+            <KeyForm
+                bind:this={setupRef}
+                bind:values={setupValues}
+                rows={setupRows}
+                submitLabel="Start program"
+                active={navigating}
+                onSubmit={submitSetup}
+                onCancel={() => mode.set("tabs")}
+            />
+        </div>
     {:else}
         <div class="tasks-hint">
             {#if navigating && view === "projections"}
@@ -495,26 +482,15 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
         </div>
 
         {#if formMode === "cycle"}
-            <!-- svelte-ignore a11y_no_noninteractive_element_interactions (esc cancels the form) -->
-            <form
-                class="workouts-form workouts-cycle-form"
-                bind:this={formEl}
-                on:submit|preventDefault={submitForm}
-                on:keydown={onFormKeydown}
-            >
-                <label class="workouts-field">
-                    <span>Start date</span>
-                    <input class="workouts-input" bind:value={cycleStart} placeholder="YYYY-MM-DD" />
-                </label>
-                {#each LIFTS as lift}
-                    <label class="workouts-field">
-                        <span>{LIFT_META[lift].label} TM</span>
-                        <input class="workouts-input" type="number" min="0" step="5" bind:value={cycleTM[lift]} />
-                    </label>
-                {/each}
-                <button type="submit" class="workouts-button">Save</button>
-                <span class="workouts-form-hint">enter save • esc cancel</span>
-            </form>
+            <div class="workouts-form workouts-cycle-form">
+                <KeyForm
+                    bind:this={formRef}
+                    bind:values={cycleValues}
+                    rows={cycleRows}
+                    onSubmit={submitCycle}
+                    onCancel={closeForm}
+                />
+            </div>
         {/if}
 
         {#if view === "projections"}
@@ -626,37 +602,17 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
                     </table>
 
                     {#if formMode === "log" || formMode === "edit"}
-                        <!-- svelte-ignore a11y_no_noninteractive_element_interactions (esc cancels the form) -->
-                        <form
-                            class="workouts-form"
-                            bind:this={formEl}
-                            on:submit|preventDefault={submitForm}
-                            on:keydown={onFormKeydown}
-                        >
-                            <label class="workouts-field">
-                                <span>Date</span>
-                                <input class="workouts-input" bind:value={formDate} placeholder="YYYY-MM-DD" />
-                            </label>
-                            {#if !isDeload(cursor)}
-                                <label class="workouts-field">
-                                    <span>Reps on last set</span>
-                                    <input
-                                        class="workouts-input"
-                                        type="number"
-                                        min="0"
-                                        data-autofocus
-                                        bind:value={formReps}
-                                    />
-                                    <span class="workouts-field-note"
-                                        >{liveEstimate ? `e1RM ${liveEstimate} lb` : ""}</span
-                                    >
-                                </label>
-                            {/if}
-                            <button type="submit" class="workouts-button"
-                                >{formMode === "log" ? "Log workout" : "Save"}</button
-                            >
-                            <span class="workouts-form-hint">enter save • esc cancel</span>
-                        </form>
+                        <div class="workouts-form">
+                            <KeyForm
+                                bind:this={formRef}
+                                bind:values={formValues}
+                                rows={logRows}
+                                submitLabel={formMode === "log" ? "Log workout" : "Save"}
+                                startEditing={isDeload(cursor) ? "date" : "reps"}
+                                onSubmit={submitForm}
+                                onCancel={closeForm}
+                            />
+                        </div>
                     {:else if canLog}
                         <p class="workouts-detail-hint">Press <kbd>enter</kbd> to log this workout.</p>
                     {:else if selectedLog}
