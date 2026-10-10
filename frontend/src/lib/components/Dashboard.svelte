@@ -3,7 +3,6 @@
     import { get } from "svelte/store";
 
     import WidgetSlot from "./WidgetSlot.svelte";
-    import DueSoonBanner from "./DueSoonBanner.svelte";
     import { widgets } from "../widgets.js";
     import {
         mode,
@@ -48,8 +47,6 @@
             back
         </div>
     </div>
-
-    <DueSoonBanner />
 
     <div class="widget-grid">
         {#each widgets as widget (widget.id)}

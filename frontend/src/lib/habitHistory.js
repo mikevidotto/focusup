@@ -172,3 +172,51 @@ export function completionRate(buckets) {
     const count = buckets.reduce((sum, b) => sum + b.count, 0);
     return count / possible;
 }
+
+// The last `n` days for one habit, oldest first, for the dashboard strips.
+export function recentDays(habit, today, n = 14) {
+    const done = new Set(habit.completions ?? []);
+    const sinceKey = trackedSince(habit);
+    const days = [];
+
+    for (let i = n - 1; i >= 0; i--) {
+        const date = addDays(today, -i);
+        const key = toDateKey(date);
+        days.push({ key, date, done: done.has(key), tracked: key >= sinceKey });
+    }
+
+    return days;
+}
+
+// How many habits were done on each of the last `n` days, with how many
+// were being tracked that day as the ghost track, for MiniColumnChart.
+export function dailyTotals(habits, today, n = 14) {
+    const out = [];
+
+    for (let i = n - 1; i >= 0; i--) {
+        const date = addDays(today, -i);
+        const key = toDateKey(date);
+        const tracked = habits.filter((h) => key >= trackedSince(h));
+        const value = tracked.filter((h) => (h.completions ?? []).includes(key)).length;
+        const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
+
+        out.push({
+            key,
+            label: i === 0 ? "today" : weekday.slice(0, 2),
+            value,
+            track: tracked.length,
+            title: `${value} / ${tracked.length} habits`,
+            sub: `${weekday}, ${shortDate(date)}`,
+            current: i === 0,
+        });
+    }
+
+    return out;
+}
+
+// Share of tracked habit-days completed over the last `n` days, or null.
+export function recentCompletionRate(habits, today, n = 30) {
+    const days = dailyTotals(habits, today, n);
+    const possible = days.reduce((sum, d) => sum + d.track, 0);
+    return possible ? days.reduce((sum, d) => sum + d.value, 0) / possible : null;
+}
