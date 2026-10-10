@@ -11,7 +11,8 @@
     import Habits from "./lib/components/HabitsPage.svelte";
     import CalendarPage from "./lib/components/CalendarPage.svelte";
     import WorkoutsPage from "./lib/components/WorkoutsPage.svelte";
-    //import NotesPage from "./lib/components/NotesPage.svelte";
+    import JournalPage from "./lib/components/JournalPage.svelte";
+    import JobsPage from "./lib/components/JobsPage.svelte";
     import ReminderPopup from "./lib/components/ReminderPopup.svelte";
 
     import { tabs } from "./lib/navigation.js";
@@ -101,8 +102,8 @@
     // is a no-op if nothing has.
     //
     // h/l always cycle tabs here. Pages with their own 2D grid (Calendar,
-    // Notes, and the Health tab's workout grid) opt into the same tabs<->grid scheme the dashboard
-    // uses: "j" hands off to mode "grid" (their own handler then owns
+    // Journal, and the Health tab's workout grid) opt into the same
+    // tabs<->grid scheme the dashboard uses: "j" hands off to mode "grid" (their own handler then owns
     // h/j/k/l — see handleKeyboard below), and until that happens, "k" is a
     // no-op rather than leaking into the page's handler (the dashboard
     // doesn't have this leak since nothing is registered pre-entry; a full
@@ -134,7 +135,7 @@
                     return;
                 }
 
-                if (activeTab === "notes") {
+                if (activeTab === "journal") {
                     mode.set("grid");
                     return;
                 }
@@ -151,7 +152,7 @@
                 if (activeTab === "calendar") {
                     return;
                 }
-                if (activeTab == "notes") {
+                if (activeTab === "journal") {
                     return;
                 }
                 if (activeTab === "health") {
@@ -251,6 +252,10 @@
             <Habits />
         {:else if activeTab === "health"}
             <WorkoutsPage />
+        {:else if activeTab === "journal"}
+            <JournalPage />
+        {:else if activeTab === "jobs"}
+            <JobsPage />
         {:else}
             <div class="page-placeholder">
                 <span class="eyebrow">

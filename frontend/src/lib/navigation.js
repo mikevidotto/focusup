@@ -6,6 +6,7 @@ export const tabs = [
     { id: "learning", label: "Learning", key: "5" },
     { id: "finance", label: "Finance", key: "6" },
     { id: "health", label: "Health", key: "7" },
-    { id: "notes", label: "Notes", key: "8" },
+    { id: "journal", label: "Journal", key: "8" },
     { id: "calendar", label: "Calendar", key: "9" },
+    { id: "jobs", label: "Jobs", key: "0" },
 ];
