@@ -21,6 +21,7 @@ Keyboard:
         splitTasks,
         formatCompletedDate,
         parseCapture,
+        nextActionCount,
     } from "../taskDisplay.js";
     import {
         ListTasks,
@@ -77,12 +78,6 @@ Keyboard:
     ).length;
 
     $: rowEls[cursor]?.scrollIntoView({ block: "nearest" });
-
-    function nextActionCount(project, tasks) {
-        return tasks.filter(
-            (t) => t.projectId === project.id && !t.done && t.list === "next",
-        ).length;
-    }
 
     async function run(action) {
         try {

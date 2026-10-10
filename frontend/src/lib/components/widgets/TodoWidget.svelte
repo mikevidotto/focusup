@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
 
     import { activeWidgetKeyHandler } from "../../stores/keyboard.js";
-    import { splitTasks, formatCompletedDate, countByList } from "../../taskDisplay.js";
+    import { splitTasks, countByList, isDoneToday } from "../../taskDisplay.js";
     import { ListTasks, ToggleTask } from "../../../../wailsjs/go/main/App.js";
 
     export let focused = false;
@@ -28,7 +28,10 @@
     // Only next actions belong on the dashboard; the inbox is processed on
     // the Tasks page, so it just shows up as a count here.
     $: counts = countByList(tasks);
-    $: ({ active: open, completed } = splitTasks(tasks));
+    // Only today's completions show here; older ones live in the Tasks
+    // page's Done list.
+    $: ({ active: open, completed: allCompleted } = splitTasks(tasks));
+    $: completed = allCompleted.filter(t => isDoneToday(t));
     $: active = open.filter(t => t.list === "next");
     $: visibleActive = active.slice(0, MAX_ACTIVE_VISIBLE);
     $: hiddenActiveCount = active.length - visibleActive.length;
@@ -118,7 +121,7 @@
             </ul>
 
             {#if completed.length > 0}
-                <div class="todo-section-label">Completed</div>
+                <div class="todo-section-label">Done today</div>
 
                 <ul class="todo-list">
                     {#each visibleCompleted as task (task.id)}
@@ -126,12 +129,11 @@
                         <li class="todo-item done" class:cursor={focused && index === cursor}>
                             <span class="todo-mark todo-mark-done">☑</span>
                             <span class="todo-title">{task.title}</span>
-                            <span class="todo-completed-date">{formatCompletedDate(task.completedAt)}</span>
                         </li>
                     {/each}
 
                     {#if hiddenCompletedCount > 0}
-                        <li class="todo-more-hint">+{hiddenCompletedCount} more completed</li>
+                        <li class="todo-more-hint">+{hiddenCompletedCount} more done today</li>
                     {/if}
                 </ul>
             {/if}
