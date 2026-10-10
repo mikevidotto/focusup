@@ -8,4 +8,4 @@ a personal desktop GUI application to stay focused and organized.
 
 `wails dev`
 
-<img width="2160" height="1350" alt="image" src="https://github.com/user-attachments/assets/999d4181-2476-4538-b727-e9deb8dc0ee6" />
+<img width="1920" height="1080" alt="FocusUp dashboard" src="docs/screenshot.png" />
