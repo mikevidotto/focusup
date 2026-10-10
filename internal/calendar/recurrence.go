@@ -17,14 +17,20 @@ const (
 // (e.g. Frequency=weekly, Interval=2 means "every other week" / biweekly).
 // Interval <= 0 is treated as 1.
 //
+// Weekdays, only meaningful for FrequencyWeekly, picks specific days of the
+// week (e.g. Mon/Wed/Fri) within each repeating week instead of repeating on
+// the anchor's own weekday. Weeks start on Monday, matching the frontend's
+// calendar grids.
+//
 // Count and Until are alternative, optional end conditions; set at most one.
 // If neither is set the recurrence is unbounded (expansion is still bounded
 // by the date range passed to Occurrences, and by an internal safety cap).
 type RecurrenceRule struct {
-	Frequency Frequency  `json:"frequency"`
-	Interval  int        `json:"interval"`
-	Count     int        `json:"count,omitempty"`
-	Until     *time.Time `json:"until,omitempty"`
+	Frequency Frequency      `json:"frequency"`
+	Interval  int            `json:"interval"`
+	Weekdays  []time.Weekday `json:"weekdays,omitempty"`
+	Count     int            `json:"count,omitempty"`
+	Until     *time.Time     `json:"until,omitempty"`
 }
 
 func (r RecurrenceRule) interval() int {
@@ -96,6 +102,10 @@ func nthOccurrenceDate(anchor time.Time, rule RecurrenceRule, n int) time.Time {
 // rule produces, up to and including the first one that falls after
 // rangeEnd, honoring Count/Until as early-stop conditions.
 func rawOccurrenceDates(anchor time.Time, rule RecurrenceRule, rangeEnd time.Time) []time.Time {
+	if rule.Frequency == FrequencyWeekly && len(rule.Weekdays) > 0 {
+		return weeklyByDayDates(anchor, rule, rangeEnd)
+	}
+
 	var dates []time.Time
 
 	for n := 0; n < maxRawOccurrences; n++ {
@@ -113,6 +123,57 @@ func rawOccurrenceDates(anchor time.Time, rule RecurrenceRule, rangeEnd time.Tim
 
 		if date.After(rangeEnd) {
 			break
+		}
+	}
+
+	return dates
+}
+
+// mondayIndex converts Go's Sunday-indexed Weekday (0=Sun..6=Sat) to a
+// Monday-indexed offset (0=Mon..6=Sun).
+func mondayIndex(d time.Weekday) int {
+	return (int(d) + 6) % 7
+}
+
+// weeklyByDayDates is rawOccurrenceDates for a weekly rule with Weekdays:
+// every interval() weeks, starting from the anchor's own (Monday-start)
+// week, it emits each selected weekday at the anchor's time of day,
+// skipping any that fall before the anchor itself. Count counts emitted
+// occurrences, not weeks.
+func weeklyByDayDates(anchor time.Time, rule RecurrenceRule, rangeEnd time.Time) []time.Time {
+	var offsets [7]bool
+	for _, d := range rule.Weekdays {
+		offsets[mondayIndex(d)] = true
+	}
+
+	weekStart := anchor.AddDate(0, 0, -mondayIndex(anchor.Weekday()))
+
+	var dates []time.Time
+	for week := 0; len(dates) < maxRawOccurrences; week++ {
+		monday := weekStart.AddDate(0, 0, week*7*rule.interval())
+
+		for offset := 0; offset < 7; offset++ {
+			if !offsets[offset] {
+				continue
+			}
+
+			date := monday.AddDate(0, 0, offset)
+			if date.Before(anchor) {
+				continue
+			}
+
+			if rule.Count > 0 && len(dates) >= rule.Count {
+				return dates
+			}
+			if rule.Until != nil && date.After(*rule.Until) {
+				return dates
+			}
+
+			dates = append(dates, date)
+
+			if date.After(rangeEnd) {
+				return dates
+			}
 		}
 	}
 

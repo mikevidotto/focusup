@@ -2,10 +2,91 @@ package calendar
 
 import (
 	"errors"
+	"strings"
 	"time"
 )
 
 var ErrNotFound = errors.New("event not found")
+
+// EventInput is the user-editable part of an Event: what the frontend's
+// event form sends for both creating and editing. Everything else on Event
+// (ID, CreatedAt, Exceptions, Completions) is owned by the Service.
+type EventInput struct {
+	Title       string          `json:"title"`
+	Description string          `json:"description"`
+	Location    string          `json:"location"`
+	Start       time.Time       `json:"start"`
+	End         time.Time       `json:"end"`
+	AllDay      bool            `json:"allDay"`
+	Important   bool            `json:"important"`
+	Recurrence  *RecurrenceRule `json:"recurrence,omitempty"`
+	// ReminderLeadSeconds lists how long before each occurrence a reminder
+	// fires (0 = at the start time).
+	ReminderLeadSeconds []int `json:"reminderLeadSeconds"`
+}
+
+// normalized returns a validated copy of in, with every time moved to
+// time.Local. Times arrive from the frontend as UTC; recurrence expansion
+// works on the anchor's own calendar fields (weekday, day of month), so it
+// has to run in the user's zone or a 9pm Monday event expands as Tuesday.
+func (in EventInput) normalized() (EventInput, error) {
+	in.Title = strings.TrimSpace(in.Title)
+	if in.Title == "" {
+		return in, errors.New("title is required")
+	}
+
+	in.Start = in.Start.In(time.Local)
+	in.End = in.End.In(time.Local)
+	if in.End.Before(in.Start) {
+		return in, errors.New("end must not be before start")
+	}
+
+	for _, lead := range in.ReminderLeadSeconds {
+		if lead < 0 {
+			return in, errors.New("reminder lead time must not be negative")
+		}
+	}
+
+	if in.Recurrence != nil {
+		rule := *in.Recurrence
+
+		switch rule.Frequency {
+		case FrequencyDaily, FrequencyWeekly, FrequencyMonthly, FrequencyYearly:
+		default:
+			return in, errors.New("unknown repeat frequency")
+		}
+
+		if rule.Interval <= 0 {
+			rule.Interval = 1
+		}
+		if rule.Count < 0 {
+			return in, errors.New("repeat count must not be negative")
+		}
+		if rule.Count > 0 && rule.Until != nil {
+			return in, errors.New("repeat can end after a count or on a date, not both")
+		}
+		if rule.Until != nil {
+			until := rule.Until.In(time.Local)
+			if until.Before(in.Start) {
+				return in, errors.New("repeat end date must not be before the start")
+			}
+			rule.Until = &until
+		}
+
+		if len(rule.Weekdays) > 0 && rule.Frequency != FrequencyWeekly {
+			return in, errors.New("weekdays only apply to weekly repeats")
+		}
+		for _, d := range rule.Weekdays {
+			if d < time.Sunday || d > time.Saturday {
+				return in, errors.New("invalid weekday")
+			}
+		}
+
+		in.Recurrence = &rule
+	}
+
+	return in, nil
+}
 
 // Event is a single scheduled item, optionally repeating via Recurrence.
 // For a repeating event, Start/End describe the first occurrence; later
@@ -88,6 +169,7 @@ type OccurrenceView struct {
 	Location    string `json:"location,omitempty"`
 	AllDay      bool   `json:"allDay"`
 	Important   bool   `json:"important"`
+	Recurring   bool   `json:"recurring"`
 }
 
 func sameCalendarDate(a, b time.Time) bool {

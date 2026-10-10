@@ -10,6 +10,8 @@ import (
 	appservice "focusup/internal/app"
 	"focusup/internal/calendar"
 	"focusup/internal/habits"
+	"focusup/internal/jobs"
+	"focusup/internal/journal"
 	"focusup/internal/notifier"
 	"focusup/internal/settings"
 	"focusup/internal/tasks"
@@ -25,10 +27,12 @@ type App struct {
 	infoService *appservice.InfoService
 	tasks       *tasks.Service
 	habits      *habits.Service
+	journal     *journal.Service
 	calendar    *calendar.Service
 	notifier    *notifier.Notifier
 	settings    *settings.Service
 	workouts    *workouts.Service
+	jobs        *jobs.Service
 }
 
 func NewApp() *App {
@@ -40,6 +44,11 @@ func NewApp() *App {
 	habitService, err := habits.NewService()
 	if err != nil {
 		log.Fatalf("failed to initialize habit storage: %v", err)
+	}
+
+	journalService, err := journal.NewService()
+	if err != nil {
+		log.Fatalf("failed to initialize journal storage: %v", err)
 	}
 
 	calendarService, err := calendar.NewService()
@@ -61,10 +70,13 @@ func NewApp() *App {
 		infoService: appservice.NewInfoService(),
 		tasks:       taskService,
 		habits:      habitService,
+		journal:     journalService,
 		calendar:    calendarService,
 		settings:    settingsService,
 		workouts:    workoutService,
 	}
+
+	app.jobs = jobs.NewService(settingsService.Get().JobSearchDir)
 
 	app.notifier = notifier.New(calendarService, func(reminder calendar.DueReminder) {
 		runtime.EventsEmit(app.ctx, reminderDueEvent, reminder)
@@ -92,6 +104,11 @@ func (a *App) GetSettings() settings.Settings {
 // SetTheme persists the UI theme ("dark" or "light").
 func (a *App) SetTheme(theme string) (settings.Settings, error) {
 	return a.settings.SetTheme(theme)
+}
+
+// MarkWeeklyReviewed records that the GTD weekly review was just finished.
+func (a *App) MarkWeeklyReviewed() (settings.Settings, error) {
+	return a.settings.MarkReviewed()
 }
 
 func (a *App) ListTasks() []tasks.Task {
@@ -174,6 +191,20 @@ func (a *App) DeleteHabit(id string) error {
 	return a.habits.Delete(id)
 }
 
+func (a *App) ListJournalEntries() []journal.Entry {
+	return a.journal.List()
+}
+
+// SaveJournalEntry creates or replaces the entry for date (YYYY-MM-DD); an
+// entry with nothing written in it is removed instead.
+func (a *App) SaveJournalEntry(date string, prompts []journal.PromptAnswer, body string) (journal.Entry, error) {
+	return a.journal.Save(date, prompts, body)
+}
+
+func (a *App) DeleteJournalEntry(date string) error {
+	return a.journal.Delete(date)
+}
+
 func (a *App) ListWorkoutCycles() []workouts.Cycle {
 	return a.workouts.ListCycles()
 }
@@ -213,8 +244,18 @@ func (a *App) ListCalendarOccurrences(rangeStart, rangeEnd time.Time) []calendar
 	return a.calendar.ListOccurrences(rangeStart, rangeEnd)
 }
 
-func (a *App) AddEvent(title, description, location string, start, end time.Time, allDay bool, recurrence *calendar.RecurrenceRule, important bool) (calendar.Event, error) {
-	return a.calendar.Add(title, description, location, start, end, allDay, recurrence, important)
+func (a *App) AddEvent(input calendar.EventInput) (calendar.Event, error) {
+	return a.calendar.Add(input)
+}
+
+func (a *App) UpdateEvent(id string, input calendar.EventInput) (calendar.Event, error) {
+	return a.calendar.Update(id, input)
+}
+
+// SkipEventOccurrence removes one occurrence of a recurring event, keyed by
+// the occurrence's originalStart.
+func (a *App) SkipEventOccurrence(eventID string, originalDate time.Time) (calendar.Event, error) {
+	return a.calendar.SkipOccurrence(eventID, originalDate)
 }
 
 func (a *App) AddReminder(eventID string, leadTimeSeconds int) (calendar.Event, error) {
@@ -231,4 +272,43 @@ func (a *App) ToggleEventCompletion(eventID string, occurrenceDate time.Time) (c
 
 func (a *App) GetDueReminders() []calendar.DueReminder {
 	return a.calendar.DueReminders(time.Now())
+}
+
+// JobsInfo describes the ai-job-search repo the Jobs tab is pointed at.
+type JobsInfo struct {
+	Dir string `json:"dir"`
+}
+
+func (a *App) GetJobsInfo() JobsInfo {
+	return JobsInfo{Dir: a.jobs.Dir()}
+}
+
+// SetJobSearchDir points the Jobs tab at another ai-job-search checkout.
+func (a *App) SetJobSearchDir(dir string) (JobsInfo, error) {
+	saved, err := a.settings.SetJobSearchDir(dir)
+	if err != nil {
+		return JobsInfo{}, err
+	}
+
+	a.jobs.SetDir(saved.JobSearchDir)
+	return a.GetJobsInfo(), nil
+}
+
+func (a *App) ListJobQueue() ([]jobs.QueueItem, error) {
+	return a.jobs.ListQueue()
+}
+
+func (a *App) ListJobApplications() ([]jobs.Application, error) {
+	return a.jobs.ListApplications()
+}
+
+// SetJobQueueOutcome ticks an apply-queue line, e.g. "skipped - <reason>".
+func (a *App) SetJobQueueOutcome(number int, outcome string) error {
+	return a.jobs.SetQueueOutcome(number, outcome)
+}
+
+// MarkJobApplied marks a tracker row (by index) applied today and ticks the
+// matching queue line.
+func (a *App) MarkJobApplied(row int) error {
+	return a.jobs.MarkApplied(row, time.Now().Format("2006-01-02"))
 }

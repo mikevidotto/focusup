@@ -40,22 +40,21 @@ func (s *Service) List() []Event {
 	return out
 }
 
-func (s *Service) Add(title, description, location string, start, end time.Time, allDay bool, recurrence *RecurrenceRule, important bool) (Event, error) {
+// Add creates an event from in, after validating and normalizing it.
+func (s *Service) Add(in EventInput) (Event, error) {
+	in, err := in.normalized()
+	if err != nil {
+		return Event{}, err
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	event := Event{
-		ID:          uuid.NewString(),
-		Title:       title,
-		Description: description,
-		Location:    location,
-		Start:       start,
-		End:         end,
-		AllDay:      allDay,
-		Important:   important,
-		Recurrence:  recurrence,
-		CreatedAt:   time.Now(),
+		ID:        uuid.NewString(),
+		CreatedAt: time.Now(),
 	}
+	applyInput(&event, in)
 
 	s.events = append(s.events, event)
 
@@ -64,6 +63,63 @@ func (s *Service) Add(title, description, location string, start, end time.Time,
 	}
 
 	return event, nil
+}
+
+// Update replaces the editable fields of the event identified by id with in.
+// ID, CreatedAt, Exceptions and Completions are kept as-is.
+func (s *Service) Update(id string, in EventInput) (Event, error) {
+	in, err := in.normalized()
+	if err != nil {
+		return Event{}, err
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for i := range s.events {
+		if s.events[i].ID == id {
+			applyInput(&s.events[i], in)
+
+			if err := save(s.path, s.events); err != nil {
+				return Event{}, err
+			}
+
+			return s.events[i], nil
+		}
+	}
+
+	return Event{}, ErrNotFound
+}
+
+// applyInput copies an already-normalized EventInput onto e. A reminder
+// whose lead time is unchanged keeps its existing ID, so the notifier's
+// dedup key for it stays stable across edits.
+func applyInput(e *Event, in EventInput) {
+	e.Title = in.Title
+	e.Description = in.Description
+	e.Location = in.Location
+	e.Start = in.Start
+	e.End = in.End
+	e.AllDay = in.AllDay
+	e.Important = in.Important
+	e.Recurrence = in.Recurrence
+
+	existing := map[time.Duration]string{}
+	for _, r := range e.Reminders {
+		existing[r.LeadTime] = r.ID
+	}
+
+	reminders := []Reminder{}
+	for _, seconds := range in.ReminderLeadSeconds {
+		lead := time.Duration(seconds) * time.Second
+		id, ok := existing[lead]
+		if !ok {
+			id = uuid.NewString()
+		}
+		delete(existing, lead) // a duplicate lead time gets a fresh ID
+		reminders = append(reminders, Reminder{ID: id, LeadTime: lead})
+	}
+	e.Reminders = reminders
 }
 
 func (s *Service) Delete(id string) error {
@@ -99,6 +155,33 @@ func (s *Service) AddReminder(eventID string, leadTime time.Duration) (Event, er
 
 			return s.events[i], nil
 		}
+	}
+
+	return Event{}, ErrNotFound
+}
+
+// SkipOccurrence removes a single occurrence of a recurring event (the one
+// whose raw, un-rescheduled date is originalDate) by adding a skip
+// Exception, leaving the rest of the series alone.
+func (s *Service) SkipOccurrence(eventID string, originalDate time.Time) (Event, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for i := range s.events {
+		if s.events[i].ID != eventID {
+			continue
+		}
+
+		s.events[i].Exceptions = append(s.events[i].Exceptions, Exception{
+			OriginalDate: originalDate.In(s.events[i].Start.Location()),
+			Type:         ExceptionSkip,
+		})
+
+		if err := save(s.path, s.events); err != nil {
+			return Event{}, err
+		}
+
+		return s.events[i], nil
 	}
 
 	return Event{}, ErrNotFound
@@ -166,6 +249,7 @@ func (s *Service) ListOccurrences(rangeStart, rangeEnd time.Time) []OccurrenceVi
 				Location:    e.Location,
 				AllDay:      e.AllDay,
 				Important:   e.Important,
+				Recurring:   e.Recurrence != nil,
 			})
 		}
 	}

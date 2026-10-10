@@ -326,3 +326,67 @@ func TestOccurrences_RescheduleKeepsDurationWhenNewEndOmitted(t *testing.T) {
 func ptr(t time.Time) *time.Time {
 	return &t
 }
+
+func TestOccurrences_WeeklyByDay(t *testing.T) {
+	mwf := []time.Weekday{time.Monday, time.Wednesday, time.Friday}
+	until := dt(2026, 1, 14, 23, 59)
+
+	tests := []struct {
+		name string
+		rule RecurrenceRule
+		want []time.Time
+	}{
+		{
+			name: "mon/wed/fri starting midweek skips days before the anchor",
+			rule: RecurrenceRule{Frequency: FrequencyWeekly, Interval: 1, Weekdays: mwf},
+			want: []time.Time{
+				dt(2026, 1, 7, 18, 0), dt(2026, 1, 9, 18, 0),
+				dt(2026, 1, 12, 18, 0), dt(2026, 1, 14, 18, 0), dt(2026, 1, 16, 18, 0),
+				dt(2026, 1, 19, 18, 0), dt(2026, 1, 21, 18, 0), dt(2026, 1, 23, 18, 0),
+			},
+		},
+		{
+			name: "every other week",
+			rule: RecurrenceRule{Frequency: FrequencyWeekly, Interval: 2, Weekdays: mwf},
+			want: []time.Time{
+				dt(2026, 1, 7, 18, 0), dt(2026, 1, 9, 18, 0),
+				dt(2026, 1, 19, 18, 0), dt(2026, 1, 21, 18, 0), dt(2026, 1, 23, 18, 0),
+			},
+		},
+		{
+			name: "count spans weeks and counts occurrences",
+			rule: RecurrenceRule{Frequency: FrequencyWeekly, Interval: 1, Weekdays: mwf, Count: 4},
+			want: []time.Time{
+				dt(2026, 1, 7, 18, 0), dt(2026, 1, 9, 18, 0),
+				dt(2026, 1, 12, 18, 0), dt(2026, 1, 14, 18, 0),
+			},
+		},
+		{
+			name: "until",
+			rule: RecurrenceRule{Frequency: FrequencyWeekly, Interval: 1, Weekdays: mwf, Until: &until},
+			want: []time.Time{
+				dt(2026, 1, 7, 18, 0), dt(2026, 1, 9, 18, 0),
+				dt(2026, 1, 12, 18, 0), dt(2026, 1, 14, 18, 0),
+			},
+		},
+		{
+			name: "sunday is the last day of the week",
+			rule: RecurrenceRule{Frequency: FrequencyWeekly, Interval: 2, Weekdays: []time.Weekday{time.Sunday}},
+			want: []time.Time{dt(2026, 1, 11, 18, 0), dt(2026, 1, 25, 18, 0)},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rule := tt.rule
+			event := Event{
+				Start:      dt(2026, 1, 7, 18, 0), // Wednesday
+				End:        dt(2026, 1, 7, 19, 0),
+				Recurrence: &rule,
+			}
+
+			got := Occurrences(event, dt(2026, 1, 1, 0, 0), dt(2026, 1, 25, 23, 59))
+			assertTimes(t, occurrenceStarts(got), tt.want)
+		})
+	}
+}

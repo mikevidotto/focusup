@@ -5,13 +5,21 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 )
 
 var ErrInvalidTheme = errors.New("theme must be \"dark\" or \"light\"")
 
 type Settings struct {
 	Theme string `json:"theme"`
+	// JobSearchDir is the ai-job-search repo the Jobs tab reads; empty means
+	// the default location (see jobs.DefaultDir).
+	JobSearchDir string `json:"jobSearchDir"`
+	// LastReviewAt is when the GTD weekly review was last finished; nil
+	// means never.
+	LastReviewAt *time.Time `json:"lastReviewAt"`
 }
 
 func defaults() Settings {
@@ -60,6 +68,34 @@ func (s *Service) SetTheme(theme string) (Settings, error) {
 	defer s.mu.Unlock()
 
 	s.settings.Theme = theme
+	if err := save(s.path, s.settings); err != nil {
+		return Settings{}, err
+	}
+
+	return s.settings, nil
+}
+
+// SetJobSearchDir persists the ai-job-search repo path ("" resets it to the
+// default).
+func (s *Service) SetJobSearchDir(dir string) (Settings, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.settings.JobSearchDir = strings.TrimSpace(dir)
+	if err := save(s.path, s.settings); err != nil {
+		return Settings{}, err
+	}
+
+	return s.settings, nil
+}
+
+// MarkReviewed records that the weekly review was just finished.
+func (s *Service) MarkReviewed() (Settings, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	now := time.Now()
+	s.settings.LastReviewAt = &now
 	if err := save(s.path, s.settings); err != nil {
 		return Settings{}, err
 	}

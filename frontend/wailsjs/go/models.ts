@@ -142,6 +142,7 @@ export namespace calendar {
 	export class RecurrenceRule {
 	    frequency: string;
 	    interval: number;
+	    weekdays?: number[];
 	    count?: number;
 	    until?: time.Time;
 	
@@ -153,6 +154,7 @@ export namespace calendar {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.frequency = source["frequency"];
 	        this.interval = source["interval"];
+	        this.weekdays = source["weekdays"];
 	        this.count = source["count"];
 	        this.until = this.convertValues(source["until"], time.Time);
 	    }
@@ -229,6 +231,52 @@ export namespace calendar {
 		    return a;
 		}
 	}
+	export class EventInput {
+	    title: string;
+	    description: string;
+	    location: string;
+	    start: time.Time;
+	    end: time.Time;
+	    allDay: boolean;
+	    important: boolean;
+	    recurrence?: RecurrenceRule;
+	    reminderLeadSeconds: number[];
+	
+	    static createFrom(source: any = {}) {
+	        return new EventInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.title = source["title"];
+	        this.description = source["description"];
+	        this.location = source["location"];
+	        this.start = this.convertValues(source["start"], time.Time);
+	        this.end = this.convertValues(source["end"], time.Time);
+	        this.allDay = source["allDay"];
+	        this.important = source["important"];
+	        this.recurrence = this.convertValues(source["recurrence"], RecurrenceRule);
+	        this.reminderLeadSeconds = source["reminderLeadSeconds"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	
 	export class OccurrenceView {
 	    start: time.Time;
@@ -241,6 +289,7 @@ export namespace calendar {
 	    location?: string;
 	    allDay: boolean;
 	    important: boolean;
+	    recurring: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new OccurrenceView(source);
@@ -258,6 +307,7 @@ export namespace calendar {
 	        this.location = source["location"];
 	        this.allDay = source["allDay"];
 	        this.important = source["important"];
+	        this.recurring = source["recurring"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -323,10 +373,155 @@ export namespace habits {
 
 }
 
+export namespace jobs {
+	
+	export class Application {
+	    row: number;
+	    date: string;
+	    company: string;
+	    sector: string;
+	    role: string;
+	    roleType: string;
+	    channel: string;
+	    status: string;
+	    contactPerson: string;
+	    fitRating: string;
+	    notes: string;
+	    cvFile: string;
+	    coverLetterFile: string;
+	    source: string;
+	    deadline: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Application(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.row = source["row"];
+	        this.date = source["date"];
+	        this.company = source["company"];
+	        this.sector = source["sector"];
+	        this.role = source["role"];
+	        this.roleType = source["roleType"];
+	        this.channel = source["channel"];
+	        this.status = source["status"];
+	        this.contactPerson = source["contactPerson"];
+	        this.fitRating = source["fitRating"];
+	        this.notes = source["notes"];
+	        this.cvFile = source["cvFile"];
+	        this.coverLetterFile = source["coverLetterFile"];
+	        this.source = source["source"];
+	        this.deadline = source["deadline"];
+	    }
+	}
+	export class QueueItem {
+	    number: number;
+	    done: boolean;
+	    fit: string;
+	    role: string;
+	    company: string;
+	    notes: string;
+	    url: string;
+	    outcome: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new QueueItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.number = source["number"];
+	        this.done = source["done"];
+	        this.fit = source["fit"];
+	        this.role = source["role"];
+	        this.company = source["company"];
+	        this.notes = source["notes"];
+	        this.url = source["url"];
+	        this.outcome = source["outcome"];
+	    }
+	}
+
+}
+
+export namespace journal {
+	
+	export class PromptAnswer {
+	    prompt: string;
+	    answer: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new PromptAnswer(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.prompt = source["prompt"];
+	        this.answer = source["answer"];
+	    }
+	}
+	export class Entry {
+	    date: string;
+	    prompts: PromptAnswer[];
+	    body: string;
+	    updatedAt: time.Time;
+	
+	    static createFrom(source: any = {}) {
+	        return new Entry(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.date = source["date"];
+	        this.prompts = this.convertValues(source["prompts"], PromptAnswer);
+	        this.body = source["body"];
+	        this.updatedAt = this.convertValues(source["updatedAt"], time.Time);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
+export namespace main {
+	
+	export class JobsInfo {
+	    dir: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new JobsInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.dir = source["dir"];
+	    }
+	}
+
+}
+
 export namespace settings {
 	
 	export class Settings {
 	    theme: string;
+	    jobSearchDir: string;
+	    lastReviewAt?: time.Time;
 	
 	    static createFrom(source: any = {}) {
 	        return new Settings(source);
@@ -335,7 +530,27 @@ export namespace settings {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.theme = source["theme"];
+	        this.jobSearchDir = source["jobSearchDir"];
+	        this.lastReviewAt = this.convertValues(source["lastReviewAt"], time.Time);
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }

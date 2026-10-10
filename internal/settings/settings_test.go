@@ -32,3 +32,28 @@ func TestService_SetThemePersists(t *testing.T) {
 		t.Fatalf("reloaded theme = %q, want light", reloaded.Theme)
 	}
 }
+
+func TestService_MarkReviewedPersists(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "settings.json")
+
+	loaded, err := load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.LastReviewAt != nil {
+		t.Fatalf("default LastReviewAt = %v, want nil", loaded.LastReviewAt)
+	}
+
+	s := &Service{path: path, settings: loaded}
+	if _, err := s.MarkReviewed(); err != nil {
+		t.Fatal(err)
+	}
+
+	reloaded, err := load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reloaded.LastReviewAt == nil {
+		t.Fatal("reloaded LastReviewAt = nil, want a time")
+	}
+}
