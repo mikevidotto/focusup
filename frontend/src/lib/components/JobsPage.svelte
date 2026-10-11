@@ -13,8 +13,12 @@ are read straight from the repo, which stays the source of truth. Scraping
 and drafting happen outside FocusUp; this page only records when a job is
 applied to or skipped.
 
+The stats panel above the lists charts applications sent per day, week or
+month, alongside streak and how much of the tracker has gone out.
+
 Keyboard (list mode, so h/l still switch tabs):
 - j/k move, w switch between the two lists, r reload from disk
+- v cycle the stats chart (daily / weekly / monthly)
 - to apply: s skip with a reason
 - applied & tracked: m m mark applied today
 
@@ -33,7 +37,11 @@ Keyboard (list mode, so h/l still switch tabs):
         queueOutcomeDate,
         isThisWeek,
         formatShortDate,
+        JOB_STATS_VIEWS,
     } from "../jobDisplay.js";
+    import JobStats from "./JobStats.svelte";
+
+    const today = new Date();
 
     let queue = [];
     let apps = [];
@@ -50,6 +58,7 @@ Keyboard (list mode, so h/l still switch tabs):
     let skipReason = "";
     let skipEl;
     let pendingApplied = false;
+    let statsView = "day";
 
     $: openQueue = queue.filter((item) => !item.done);
     $: doneQueue = queue.filter((item) => item.done);
@@ -216,6 +225,12 @@ Keyboard (list mode, so h/l still switch tabs):
                 event.preventDefault();
                 attempt(reload, "Reloaded");
                 return;
+            case "v": {
+                event.preventDefault();
+                const next = JOB_STATS_VIEWS.indexOf(statsView) + 1;
+                statsView = JOB_STATS_VIEWS[next % JOB_STATS_VIEWS.length];
+                return;
+            }
         }
 
         if (pane === "queue" && key === "s") {
@@ -255,12 +270,21 @@ Keyboard (list mode, so h/l still switch tabs):
         {:else}
             <kbd>m</kbd> mark applied
         {/if}
+        <kbd>v</kbd> stats view
         <kbd>r</kbd> reload
     </div>
 
     {#if loading}
         <p>Loading job search…</p>
     {:else}
+        <JobStats
+            {apps}
+            {queue}
+            {today}
+            view={statsView}
+            onSelectView={(v) => (statsView = v)}
+        />
+
         <div class="jobs-layout">
             <section class="jobs-section" class:active={pane === "queue"}>
                 <div class="todo-section-label">

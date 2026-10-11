@@ -850,6 +850,31 @@ kbd {
     white-space: nowrap;
 }
 
+.jobs-widget-subtitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.jobs-widget-pages {
+    flex-shrink: 0;
+    display: flex;
+    gap: 4px;
+}
+
+.jobs-widget-dot {
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+    background: var(--border);
+}
+
+.jobs-widget-dot.active {
+    background: var(--accent);
+}
+
 .mini-chart {
     flex-shrink: 0;
 }
@@ -3265,6 +3290,21 @@ footer > div:first-child {
 
 .jobs-page {
     text-align: left;
+}
+
+.job-stats {
+    margin-bottom: 24px;
+}
+
+.job-stats .habit-history-stats {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.job-stats .habit-stat-value small {
+    margin-left: 4px;
+
+    color: var(--text-faint);
+    font-size: 11px;
 }
 
 .jobs-layout {

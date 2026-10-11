@@ -24,7 +24,10 @@
     $: plotH = h - MARGIN.top - MARGIN.bottom;
     $: band = buckets.length ? plotW / buckets.length : 0;
     $: barW = Math.min(24, band * 0.6);
-    $: labelEvery = Math.max(1, Math.ceil(40 / Math.max(band, 1)));
+    // Thin out x labels only when the widest one (10px mono, ~6px a
+    // character, plus a gap) can't fit in a band.
+    $: labelW = Math.max(...buckets.map((b) => String(b.label).length), 1) * 6 + 6;
+    $: labelEvery = Math.max(1, Math.ceil(labelW / Math.max(band, 1)));
     $: yScale = (v) => MARGIN.top + plotH - (v / ticks.at(-1)) * plotH;
     $: barX = (i) => MARGIN.left + band * i + (band - barW) / 2;
 
