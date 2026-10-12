@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -31,8 +32,12 @@ type App struct {
 	calendar    *calendar.Service
 	notifier    *notifier.Notifier
 	settings    *settings.Service
-	workouts    *workouts.Service
 	jobs        *jobs.Service
+
+	// workouts is the local file or the gym server, depending on the
+	// workout server URL setting; SetWorkoutServerURL swaps it.
+	workoutsMu sync.Mutex
+	workouts   workouts.Backend
 }
 
 func NewApp() *App {
@@ -56,14 +61,14 @@ func NewApp() *App {
 		log.Fatalf("failed to initialize calendar storage: %v", err)
 	}
 
-	workoutService, err := workouts.NewService()
-	if err != nil {
-		log.Fatalf("failed to initialize workout storage: %v", err)
-	}
-
 	settingsService, err := settings.NewService()
 	if err != nil {
 		log.Fatalf("failed to initialize settings storage: %v", err)
+	}
+
+	workoutBackend, err := newWorkoutBackend(settingsService.Get().WorkoutServerURL)
+	if err != nil {
+		log.Fatalf("failed to initialize workout storage: %v", err)
 	}
 
 	app := &App{
@@ -73,7 +78,7 @@ func NewApp() *App {
 		journal:     journalService,
 		calendar:    calendarService,
 		settings:    settingsService,
-		workouts:    workoutService,
+		workouts:    workoutBackend,
 	}
 
 	app.jobs = jobs.NewService(settingsService.Get().JobSearchDir)
@@ -206,34 +211,84 @@ func (a *App) DeleteJournalEntry(date string) error {
 }
 
 func (a *App) ListWorkoutCycles() []workouts.Cycle {
-	return a.workouts.ListCycles()
+	return a.workoutBackend().ListCycles()
 }
 
 // SetupWorkouts starts the 5/3/1 program from the lifter's true 1RMs.
 func (a *App) SetupWorkouts(startDate string, oneRepMax map[string]float64) (workouts.Cycle, error) {
-	return a.workouts.Setup(startDate, oneRepMax)
+	return a.workoutBackend().Setup(startDate, oneRepMax)
 }
 
 // CompleteWorkout logs the next workout; it returns every cycle because
 // finishing a cycle generates the next one.
 func (a *App) CompleteWorkout(cycleID string, index int, date string, amrapReps int) ([]workouts.Cycle, error) {
-	return a.workouts.CompleteWorkout(cycleID, index, date, amrapReps)
+	return a.workoutBackend().CompleteWorkout(cycleID, index, date, amrapReps)
 }
 
 func (a *App) UpdateWorkoutCycle(cycleID, startDate string, trainingMax map[string]float64) (workouts.Cycle, error) {
-	return a.workouts.UpdateCycle(cycleID, startDate, trainingMax)
+	return a.workoutBackend().UpdateCycle(cycleID, startDate, trainingMax)
 }
 
 func (a *App) UpdateWorkoutLog(cycleID string, index int, date string, amrapReps int) (workouts.Cycle, error) {
-	return a.workouts.UpdateWorkoutLog(cycleID, index, date, amrapReps)
+	return a.workoutBackend().UpdateWorkoutLog(cycleID, index, date, amrapReps)
 }
 
 func (a *App) UndoLastWorkout() ([]workouts.Cycle, error) {
-	return a.workouts.UndoLastWorkout()
+	return a.workoutBackend().UndoLastWorkout()
 }
 
 func (a *App) ResetWorkouts() error {
-	return a.workouts.Reset()
+	return a.workoutBackend().Reset()
+}
+
+// WorkoutServerInfo describes where the 5/3/1 program lives. URL is empty
+// when it's in the local data file; Offline means the gym server couldn't
+// be reached the last time the program was loaded, so the page is showing
+// a cached copy.
+type WorkoutServerInfo struct {
+	URL     string `json:"url"`
+	Offline bool   `json:"offline"`
+}
+
+func (a *App) GetWorkoutServer() WorkoutServerInfo {
+	info := WorkoutServerInfo{URL: a.settings.Get().WorkoutServerURL}
+	if client, ok := a.workoutBackend().(*workouts.Client); ok {
+		info.Offline = client.Offline()
+	}
+	return info
+}
+
+// SetWorkoutServerURL moves the Workouts page onto a gym server, or back
+// to the local data file when url is empty.
+func (a *App) SetWorkoutServerURL(url string) (WorkoutServerInfo, error) {
+	saved, err := a.settings.SetWorkoutServerURL(url)
+	if err != nil {
+		return WorkoutServerInfo{}, err
+	}
+
+	backend, err := newWorkoutBackend(saved.WorkoutServerURL)
+	if err != nil {
+		return WorkoutServerInfo{}, err
+	}
+
+	a.workoutsMu.Lock()
+	a.workouts = backend
+	a.workoutsMu.Unlock()
+
+	return a.GetWorkoutServer(), nil
+}
+
+func (a *App) workoutBackend() workouts.Backend {
+	a.workoutsMu.Lock()
+	defer a.workoutsMu.Unlock()
+	return a.workouts
+}
+
+func newWorkoutBackend(serverURL string) (workouts.Backend, error) {
+	if serverURL == "" {
+		return workouts.NewService()
+	}
+	return workouts.NewClient(serverURL)
 }
 
 func (a *App) ListEvents() []calendar.Event {

@@ -513,6 +513,20 @@ export namespace main {
 	        this.dir = source["dir"];
 	    }
 	}
+	export class WorkoutServerInfo {
+	    url: string;
+	    offline: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new WorkoutServerInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.url = source["url"];
+	        this.offline = source["offline"];
+	    }
+	}
 
 }
 
@@ -522,6 +536,7 @@ export namespace settings {
 	    theme: string;
 	    jobSearchDir: string;
 	    lastReviewAt?: time.Time;
+	    workoutServerURL: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Settings(source);
@@ -532,6 +547,7 @@ export namespace settings {
 	        this.theme = source["theme"];
 	        this.jobSearchDir = source["jobSearchDir"];
 	        this.lastReviewAt = this.convertValues(source["lastReviewAt"], time.Time);
+	        this.workoutServerURL = source["workoutServerURL"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

@@ -1,0 +1,19 @@
+# systemd unit for the gym server on the Raspberry Pi.
+#
+#   sudo cp docs/gymserver.service /etc/systemd/system/
+#   sudo systemctl enable --now gymserver
+#
+# Change User and the paths to match the Pi.
+[Unit]
+Description=FocusUp gym server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=pi
+ExecStart=/home/pi/gymserver -addr :8787 -data /home/pi/.config/focusup/workouts.json
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

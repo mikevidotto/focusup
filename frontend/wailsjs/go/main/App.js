@@ -66,6 +66,10 @@ export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
 }
 
+export function GetWorkoutServer() {
+  return window['go']['main']['App']['GetWorkoutServer']();
+}
+
 export function ListCalendarOccurrences(arg1, arg2) {
   return window['go']['main']['App']['ListCalendarOccurrences'](arg1, arg2);
 }
@@ -152,6 +156,10 @@ export function SetTaskProject(arg1, arg2) {
 
 export function SetTheme(arg1) {
   return window['go']['main']['App']['SetTheme'](arg1);
+}
+
+export function SetWorkoutServerURL(arg1) {
+  return window['go']['main']['App']['SetWorkoutServerURL'](arg1);
 }
 
 export function SetupWorkouts(arg1, arg2) {

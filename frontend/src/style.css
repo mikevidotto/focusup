@@ -2549,6 +2549,17 @@ button.gtd-context.active {
     font-size: 12px;
 }
 
+.workouts-sync {
+    margin: 0 0 12px;
+
+    color: var(--text-faint);
+    font-size: 12px;
+}
+
+.workouts-sync.offline {
+    color: var(--warning);
+}
+
 .workouts-cycle-bar {
     display: flex;
     flex-wrap: wrap;

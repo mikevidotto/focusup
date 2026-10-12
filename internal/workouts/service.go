@@ -1,6 +1,8 @@
 package workouts
 
 import (
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -19,6 +21,16 @@ type Service struct {
 func NewService() (*Service, error) {
 	path, err := datafilepath()
 	if err != nil {
+		return nil, err
+	}
+
+	return NewServiceAt(path)
+}
+
+// NewServiceAt stores the program in the JSON file at path (the gym server
+// keeps its copy wherever -data points).
+func NewServiceAt(path string) (*Service, error) {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return nil, err
 	}
 

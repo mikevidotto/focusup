@@ -17,6 +17,9 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
   back; the log form starts out typing the reps
 - e edit a done workout, c edit the cycle, u undo the last log
 - [ ] previous/next cycle, x x reset the whole program
+- s (from the tab bar or the grid) sets the workout server (cmd/gymserver on the Pi) that the phone
+  page shares; cycles are re-read whenever the window regains focus so
+  workouts logged at the gym show up
 - p toggles the projections view (WorkoutProjections.svelte), which takes
   h/l, +/-, d and g while it's showing; k, q or esc still go back to the tabs
 
@@ -54,6 +57,8 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
         UpdateWorkoutLog,
         UndoLastWorkout,
         ResetWorkouts,
+        GetWorkoutServer,
+        SetWorkoutServerURL,
     } from "../../../wailsjs/go/main/App.js";
 
     const today = startOfDay(new Date());
@@ -70,12 +75,19 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
     let view = "program";
     let projectionsEl;
 
-    // null | "log" | "edit" | "cycle"
+    // { url, offline }: where the program lives (see app.go)
+    let server = { url: "", offline: false };
+
+    // null | "log" | "edit" | "cycle" | "server"
     let formMode = null;
     let formRef;
     let formValues = { date: todayKey, reps: "" };
     // { start, <lift>: training max, ... }
     let cycleValues = {};
+    let serverValues = { url: "" };
+    const serverRows = [
+        { key: "url", type: "text", label: "Server URL", placeholder: "http://gym-pi:8787 (empty = this computer)" },
+    ];
 
     // { start, <lift>: one-rep max, ... }
     let setupValues = { start: todayKey, squat: "", bench: "", deadlift: "", press: "" };
@@ -84,6 +96,7 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
     onMount(async () => {
         try {
             setCycles(await ListWorkoutCycles());
+            server = await GetWorkoutServer();
         } catch (e) {
             error = String(e);
         } finally {
@@ -91,11 +104,30 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
         }
 
         activeWidgetKeyHandler.set(handleKey);
+        window.addEventListener("focus", refresh);
     });
 
     onDestroy(() => {
         activeWidgetKeyHandler.set(null);
+        window.removeEventListener("focus", refresh);
     });
+
+    // Picks up workouts logged from the phone. Leaves the cursor alone
+    // unless something actually changed, and never interrupts a form.
+    async function refresh() {
+        if (formMode || loading) {
+            return;
+        }
+        try {
+            const next = await ListWorkoutCycles();
+            server = await GetWorkoutServer();
+            if (JSON.stringify(next) !== JSON.stringify(cycles)) {
+                setCycles(next);
+            }
+        } catch (e) {
+            error = String(e);
+        }
+    }
 
     // Replaces the cycle list and jumps to the latest cycle's next workout.
     function setCycles(next) {
@@ -195,6 +227,8 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
                 date: selectedLog.date,
                 reps: isDeload(cursor) ? "" : String(selectedLog.amrapReps),
             };
+        } else if (mode === "server") {
+            serverValues = { url: server.url };
         } else if (mode === "cycle") {
             cycleValues = {
                 start: cycle.startDate,
@@ -240,6 +274,14 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
         closeForm();
     }
 
+    async function submitServer(values) {
+        server = await SetWorkoutServerURL(values.url);
+        setCycles(await ListWorkoutCycles());
+        server = await GetWorkoutServer();
+        error = null;
+        closeForm();
+    }
+
     async function undo() {
         try {
             setCycles(await UndoLastWorkout());
@@ -262,6 +304,15 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
     function handleKey(event) {
         if (formMode) {
             formRef?.handleKey(event);
+            return;
+        }
+
+        // The server form works from the tab bar too, and before setup; the
+        // page takes the keyboard so h/j/k/l drive the form, not the tabs.
+        if (event.key === "s" && !loading) {
+            event.preventDefault();
+            mode.set("grid");
+            openForm("server");
             return;
         }
 
@@ -410,6 +461,28 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
         {/if}
     </div>
 
+    {#if server.url}
+        <p class="workouts-sync" class:offline={server.offline}>
+            {server.offline
+                ? `Can't reach ${server.url}, showing the last copy. Changes are paused.`
+                : `Synced with ${server.url}`}
+        </p>
+    {/if}
+
+    {#if formMode === "server"}
+        <div class="workouts-form workouts-cycle-form">
+            <KeyForm
+                bind:this={formRef}
+                bind:values={serverValues}
+                rows={serverRows}
+                submitLabel="Save"
+                startEditing="url"
+                onSubmit={submitServer}
+                onCancel={closeForm}
+            />
+        </div>
+    {/if}
+
     {#if loading}
         <p>Loading program…</p>
     {:else if !cycle}
@@ -448,10 +521,12 @@ Keyboard (same tabs <-> grid scheme as the Calendar page):
                 <kbd>u</kbd> undo
                 <kbd>[</kbd><kbd>]</kbd> cycle
                 <kbd>p</kbd> projections
+                <kbd>s</kbd> server
                 <kbd>x</kbd> reset
                 <kbd>q</kbd> back
             {:else}
                 <kbd>j</kbd> navigate workouts
+                <kbd>s</kbd> server
             {/if}
         </div>
 

@@ -3,6 +3,7 @@ package settings
 import (
 	"encoding/json"
 	"errors"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,7 +11,10 @@ import (
 	"time"
 )
 
-var ErrInvalidTheme = errors.New("theme must be \"dark\" or \"light\"")
+var (
+	ErrInvalidTheme     = errors.New("theme must be \"dark\" or \"light\"")
+	ErrInvalidServerURL = errors.New("workout server URL must start with http:// or https://")
+)
 
 type Settings struct {
 	Theme string `json:"theme"`
@@ -20,6 +24,9 @@ type Settings struct {
 	// LastReviewAt is when the GTD weekly review was last finished; nil
 	// means never.
 	LastReviewAt *time.Time `json:"lastReviewAt"`
+	// WorkoutServerURL is the gym server (cmd/gymserver) that holds the
+	// 5/3/1 program; empty keeps it in the local data file.
+	WorkoutServerURL string `json:"workoutServerURL"`
 }
 
 func defaults() Settings {
@@ -82,6 +89,28 @@ func (s *Service) SetJobSearchDir(dir string) (Settings, error) {
 	defer s.mu.Unlock()
 
 	s.settings.JobSearchDir = strings.TrimSpace(dir)
+	if err := save(s.path, s.settings); err != nil {
+		return Settings{}, err
+	}
+
+	return s.settings, nil
+}
+
+// SetWorkoutServerURL points the Workouts page at a gym server ("" goes
+// back to the local data file).
+func (s *Service) SetWorkoutServerURL(raw string) (Settings, error) {
+	raw = strings.TrimRight(strings.TrimSpace(raw), "/")
+	if raw != "" {
+		u, err := url.Parse(raw)
+		if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			return Settings{}, ErrInvalidServerURL
+		}
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.settings.WorkoutServerURL = raw
 	if err := save(s.path, s.settings); err != nil {
 		return Settings{}, err
 	}

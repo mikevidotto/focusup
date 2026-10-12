@@ -43,6 +43,8 @@ export function GetJobsInfo():Promise<main.JobsInfo>;
 
 export function GetSettings():Promise<settings.Settings>;
 
+export function GetWorkoutServer():Promise<main.WorkoutServerInfo>;
+
 export function ListCalendarOccurrences(arg1:time.Time,arg2:time.Time):Promise<Array<calendar.OccurrenceView>>;
 
 export function ListEvents():Promise<Array<calendar.Event>>;
@@ -86,6 +88,8 @@ export function SetTaskContexts(arg1:string,arg2:Array<string>):Promise<tasks.Ta
 export function SetTaskProject(arg1:string,arg2:string):Promise<tasks.Task>;
 
 export function SetTheme(arg1:string):Promise<settings.Settings>;
+
+export function SetWorkoutServerURL(arg1:string):Promise<main.WorkoutServerInfo>;
 
 export function SetupWorkouts(arg1:string,arg2:Record<string, number>):Promise<workouts.Cycle>;
 

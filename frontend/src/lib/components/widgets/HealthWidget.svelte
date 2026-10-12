@@ -29,7 +29,9 @@
     let hovered = null;
     let barsWidth = 0;
 
-    onMount(async () => {
+    // Re-read on window focus too, so workouts logged from the phone
+    // (via the gym server) show up without a restart.
+    async function load() {
         try {
             cycles = await ListWorkoutCycles();
         } catch (e) {
@@ -37,6 +39,12 @@
         } finally {
             loading = false;
         }
+    }
+
+    onMount(() => {
+        load();
+        window.addEventListener("focus", load);
+        return () => window.removeEventListener("focus", load);
     });
 
     $: cycle = [...cycles].sort((a, b) => b.number - a.number)[0];

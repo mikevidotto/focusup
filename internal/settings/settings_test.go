@@ -57,3 +57,25 @@ func TestService_MarkReviewedPersists(t *testing.T) {
 		t.Fatal("reloaded LastReviewAt = nil, want a time")
 	}
 }
+
+func TestService_SetWorkoutServerURL(t *testing.T) {
+	s := &Service{path: filepath.Join(t.TempDir(), "settings.json"), settings: defaults()}
+
+	got, err := s.SetWorkoutServerURL("  http://gym-pi:8787/ ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.WorkoutServerURL != "http://gym-pi:8787" {
+		t.Fatalf("url = %q, want it trimmed", got.WorkoutServerURL)
+	}
+
+	for _, bad := range []string{"gym-pi:8787", "ftp://gym-pi", "http://"} {
+		if _, err := s.SetWorkoutServerURL(bad); err != ErrInvalidServerURL {
+			t.Errorf("SetWorkoutServerURL(%q) err = %v, want ErrInvalidServerURL", bad, err)
+		}
+	}
+
+	if got, err := s.SetWorkoutServerURL(""); err != nil || got.WorkoutServerURL != "" {
+		t.Fatalf("clearing = %q, %v", got.WorkoutServerURL, err)
+	}
+}
